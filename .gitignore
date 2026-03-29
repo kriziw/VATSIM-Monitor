@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.svelte-kit/
+.turbo/
+.DS_Store
+coverage/
+*.log
+.env
+.env.*
+!*.env.example
+_source_web/
+_source_api/
+

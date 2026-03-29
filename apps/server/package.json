@@ -1,0 +1,26 @@
+{
+  "name": "@vatsim-monitor/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "db:migrate": "tsx src/scripts/migrate.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@vatsim-monitor/data": "file:../../packages/data",
+    "@vatsim-monitor/domain": "file:../../packages/domain",
+    "@vatsim-monitor/integrations": "file:../../packages/integrations",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "vatsim-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present",
+    "db:migrate": "npm run db:migrate --workspace @vatsim-monitor/server",
+    "dev:server": "npm run dev --workspace @vatsim-monitor/server",
+    "dev:web": "npm run dev --workspace @vatsim-monitor/web",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

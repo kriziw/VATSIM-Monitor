@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": [
+      "ES2022"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@vatsim-monitor/data": [
+        "packages/data/src/index.ts"
+      ],
+      "@vatsim-monitor/domain": [
+        "packages/domain/src/index.ts"
+      ],
+      "@vatsim-monitor/integrations": [
+        "packages/integrations/src/index.ts"
+      ]
+    },
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "sourceMap": true
+  }
+}

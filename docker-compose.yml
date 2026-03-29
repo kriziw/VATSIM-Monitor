@@ -1,0 +1,56 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vatsim_monitor}
+      MYSQL_USER: ${MYSQL_USER:-vatsim_monitor}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-vatsim_monitor}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      MYSQL_HOST: mariadb
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-vatsim_monitor}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-vatsim_monitor}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vatsim_monitor}
+      MONITOR_POLL_INTERVAL_MS: ${MONITOR_POLL_INTERVAL_MS:-15000}
+      VATSIM_OAUTH_ENABLED: ${VATSIM_OAUTH_ENABLED:-false}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - server
+    environment:
+      PRIVATE_API_BASE_URL: ${PRIVATE_API_BASE_URL:-http://server:8080}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+volumes:
+  mariadb_data:
+

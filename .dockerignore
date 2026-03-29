@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.git
+.github
+.turbo
+_source_api
+_source_web
+coverage
+dist
+build
+.svelte-kit
+
