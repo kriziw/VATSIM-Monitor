@@ -45,17 +45,52 @@ These are read by `apps/web`.
 
 ## GitHub Actions
 
-### Already covered by default
+### Required repository secrets
 
-The current Docker and release workflows can use the built-in `GITHUB_TOKEN`.
+These are now required to mirror the `MindBuzz` release flow:
 
-### Likely next secrets or variables
+- `RELEASE_PLEASE_TOKEN`
+  Use a GitHub token that can create and update pull requests, tags, releases, and changelog commits in this repository.
+- `DOCKERHUB_USERNAME`
+  Docker Hub account or organization name that will own the published images.
+- `DOCKERHUB_TOKEN`
+  Docker Hub access token for image publishing.
 
-These are not all used by the repo yet, but they are the likely next items once deployment starts:
+### Required repository settings
+
+- enable `Allow GitHub Actions to create and approve pull requests`
+- ensure Actions has permission to read and write repository contents
+- ensure Actions is allowed to publish packages and create releases
+
+### Current workflow behavior
+
+- `.github/workflows/ci.yml`
+  Runs on pull requests and pushes to `main`, and validates `npm run build`, `npm run check`, `docker compose config`, and `docker compose build`.
+- `.github/workflows/pr-title-check.yml`
+  Enforces Conventional Commit pull request titles.
+- `.github/workflows/release-please.yml`
+  Uses `RELEASE_PLEASE_TOKEN` to keep the release PR current and cut the next `0.x` tag and GitHub release.
+- `.github/workflows/docker-release.yml`
+  Publishes multi-arch Docker Hub images for `server` and `web` when a GitHub release is published.
+
+### Docker Hub image names
+
+The Docker release workflow publishes:
+
+- `<DOCKERHUB_USERNAME>/vatsim-monitor-server`
+- `<DOCKERHUB_USERNAME>/vatsim-monitor-web`
+
+Each published release writes:
+
+- the full version tag, for example `0.1.0`
+- the major/minor tag, for example `0.1`
+- `latest`
+
+### Still optional for later phases
+
+These are not required for the first merged `0.x` deployment:
 
 - deployment target credentials
-- runtime environment variable mapping for `MYSQL_*`
-- runtime environment variable mapping for `PRIVATE_API_BASE_URL`
 - optional future VATSIM OAuth credentials once account linking is introduced
 - optional future web-push VAPID keys once push delivery is restored
 
