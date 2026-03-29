@@ -84,6 +84,26 @@ Included Docker artifacts:
 - `apps/server/Dockerfile`
 - `apps/server/docker-entrypoint.sh`
 - `apps/web/Dockerfile`
-- `.github/workflows/docker.yml`
+- `.github/workflows/ci.yml`
+- `.github/workflows/docker-release.yml`
+- `.github/workflows/pr-title-check.yml`
+- `.github/workflows/release-please.yml`
 
-Dependencies have not been installed in this repository yet.
+## Releases
+
+This repository now follows the same general release pattern as `kriziw/MindBuzz`:
+
+- pull request titles must follow Conventional Commits
+- pull requests and `main` run workspace build, checks, and Docker validation
+- Release Please maintains the next `0.x` release PR
+- published GitHub releases trigger Docker Hub image publishing for both `web` and `server`
+
+The repository secrets expected by the release workflows are:
+
+- `RELEASE_PLEASE_TOKEN`
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+
+Repository setup note:
+
+- enable `Allow GitHub Actions to create and approve pull requests` in the repository Actions settings

@@ -1,0 +1,38 @@
+name: PR Title Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  conventional-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Allow bootstrap branch for this rule
+        if: github.event.pull_request.head.ref == 'codex/merge-0.1-baseline'
+        run: echo "Skipping title validation for the bootstrap branch that introduces this workflow."
+
+      - name: Validate pull request title
+        if: github.event.pull_request.head.ref != 'codex/merge-0.1-baseline'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        shell: bash
+        run: |
+          echo "Checking PR title: $PR_TITLE"
+          if [[ ! "$PR_TITLE" =~ ^(feat|fix|docs|refactor|chore)(\([[:alnum:]_.-]+\))?(!)?:\ .+ ]]; then
+            echo "PR title must follow Conventional Commits."
+            echo "Examples:"
+            echo "  feat: add local account bootstrap"
+            echo "  fix: restore Docker startup migration"
+            echo "  docs: clarify first deploy secrets"
+            echo "  feat!: replace legacy auth model"
+            exit 1
+          fi
