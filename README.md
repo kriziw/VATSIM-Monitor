@@ -76,6 +76,8 @@ Planned root workspace commands:
 
 Docker is the preferred deployment method for this repository.
 
+The default `docker-compose.yml` now targets the published Docker Hub images so a user can deploy directly with `docker compose pull` and `docker compose up -d`.
+
 Included Docker artifacts:
 
 - `docker-compose.yml`

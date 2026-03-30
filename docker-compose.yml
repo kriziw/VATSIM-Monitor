@@ -18,9 +18,7 @@ services:
       retries: 10
 
   server:
-    build:
-      context: .
-      dockerfile: apps/server/Dockerfile
+    image: ${IMAGE_NAMESPACE:-kriziw}/vatsim-monitor-server:${APP_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       mariadb:
@@ -40,9 +38,7 @@ services:
       - "${SERVER_PORT:-8080}:8080"
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
+    image: ${IMAGE_NAMESPACE:-kriziw}/vatsim-monitor-web:${APP_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       - server
