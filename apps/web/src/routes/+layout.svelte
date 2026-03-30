@@ -32,4 +32,9 @@
 	</header>
 
 	<slot />
+
+	<footer class="build-footer">
+		<span>Version {data.buildInfo.version}</span>
+		<span>Build {data.buildInfo.buildNumber}</span>
+	</footer>
 </div>
