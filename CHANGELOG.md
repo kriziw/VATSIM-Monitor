@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.5.0...v0.5.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* address review findings and tighten monitor summary ([#37](https://github.com/kriziw/VATSIM-Monitor/issues/37)) ([c18655b](https://github.com/kriziw/VATSIM-Monitor/commit/c18655b48c5632b52f60daeac77758bbcebc3f9c))
+
 ## [0.5.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.4.1...v0.5.0) (2026-03-30)
 
 
