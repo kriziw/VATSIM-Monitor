@@ -2,6 +2,28 @@
 
 Unified monitoring platform for VATSIM controllers.
 
+## Overview
+
+VATSIM Monitor is a self-hosted platform for tracking controller availability on the VATSIM network. It is designed for users who want to watch specific positions, receive alerts when staffing changes happen, and manage those alerts through a clean local-first web application.
+
+The project combines:
+
+- live polling of VATSIM controller data
+- watch-rule based monitoring for specific positions or wildcard patterns
+- optional top-down matching for broader position coverage
+- Discord webhook notifications with per-event customization
+- local multi-user accounts without requiring VATSIM OAuth
+
+In practice, this means a user can define the callsigns they care about, keep a live monitor page open, and receive notifications when those positions come online, go offline, or change controller.
+
+## Project Lineage
+
+This project respectfully builds on ideas and earlier implementation work from [VatNotif-web](https://github.com/kristiankunc/VatNotif-web) and [VatNotif-api](https://github.com/kristiankunc/VatNotif-api). VATSIM Monitor is not intended as a like-for-like continuation of those projects; it is a substantial redesign and enhancement with a new architecture, new deployment model, expanded customization, and a broader product direction.
+
+## AI Disclaimer
+
+This repository is developed with AI-assisted tooling. Architecture, implementation, and documentation changes may be drafted or accelerated with AI support, but project direction, review, and final decisions remain human-led.
+
 ## Goal
 
 This repository will replace and merge:
@@ -49,18 +71,41 @@ The first scaffold is now in place:
 This scaffold intentionally establishes structure first. It includes:
 
 - a local-first product shell in the web app
-- an Express server with health, auth-provider, monitoring-status, and authenticated dashboard routes
+- an Express server with health, auth-provider, monitoring-status, and authenticated settings and monitor routes
 - an initial MySQL schema centered on users, sessions, watch rules, channels, and controller events
 - local registration, login, logout, and session lookup
-- first-pass CRUD for watch rules and Discord webhook channels
+- CRUD for watch rules and Discord webhook channels
 - a live VATSIM polling loop with persisted controller events
 - Discord webhook fan-out driven by active watch rules and channels
+- per-channel Discord template customization for online, offline, and controller-change events
+- a watchlist-focused monitor view for matched controllers and recent relevant changes
 
 It does not yet include:
 
 - implemented VATSIM linking
 - web push delivery in the new backend
 - richer notification history and retry tooling
+
+## How It Works
+
+At a high level, the platform is split into three connected layers:
+
+1. `apps/server`
+   The backend service polls VATSIM data, detects controller state changes, stores those events, resolves top-down coverage where applicable, and dispatches notifications.
+
+2. `apps/web`
+   The frontend provides local authentication, settings management, and a live monitoring view focused on watched positions.
+
+3. `packages/*`
+   Shared packages define domain types, database access, and external integrations so the frontend and backend use the same core model.
+
+The typical user flow is:
+
+1. create a local account
+2. add one or more watch rules such as `EGLL_TWR` or `EGNX_%`
+3. connect one or more Discord webhook channels
+4. optionally customize the online, offline, and controller-change notification templates
+5. monitor live watched positions in the UI and receive alerts as staffing changes occur
 
 ## Development
 

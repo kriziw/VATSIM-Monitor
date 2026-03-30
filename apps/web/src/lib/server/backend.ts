@@ -113,6 +113,10 @@ export async function fetchMonitorSnapshot(sessionId: string): Promise<MonitorSn
 	return requestWithSession(sessionId, "/api/v1/monitor") as Promise<MonitorSnapshot>;
 }
 
+export async function fetchWatchlistEvents(sessionId: string, limit = 12): Promise<ControllerEvent[]> {
+	return requestWithSession(sessionId, `/api/v1/monitor/events?limit=${limit}`) as Promise<ControllerEvent[]>;
+}
+
 export async function fetchMonitoringStatus(): Promise<MonitorStatus> {
 	const response = await fetch(`${getApiBaseUrl()}/api/v1/monitoring/status`);
 	if (!response.ok) {

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Pool, RowDataPacket } from "mysql2/promise";
 import {
-	getDefaultDiscordNotificationConfig,
+	coerceDiscordNotificationConfig,
 	type DiscordNotificationChannelConfig,
 	type NotificationChannel,
 	type NotificationChannelType
@@ -26,40 +26,18 @@ function maskDiscordWebhook(destination: string): string {
 
 	const [, prefix, id, token] = match;
 	const idPreview = id.length > 6 ? `${id.slice(0, 3)}...${id.slice(-3)}` : id;
-	const tokenPreview = token.length > 8 ? `${token.slice(0, 4)}...${token.slice(-4)}` : "••••";
+	const tokenPreview = token.length > 8 ? `${token.slice(0, 4)}...${token.slice(-4)}` : "****";
 	return `${prefix}${idPreview}/${tokenPreview}`;
 }
 
 function parseDiscordConfig(raw: unknown): DiscordNotificationChannelConfig {
-	const defaults = getDefaultDiscordNotificationConfig();
-	let parsed: unknown = {};
-
 	try {
-		parsed = typeof raw === "string" ? JSON.parse(raw) : raw && typeof raw === "object" ? raw : {};
+		return coerceDiscordNotificationConfig(
+			typeof raw === "string" ? JSON.parse(raw) : raw && typeof raw === "object" ? raw : {}
+		);
 	} catch {
-		parsed = {};
+		return coerceDiscordNotificationConfig({});
 	}
-
-	const config = parsed as Partial<DiscordNotificationChannelConfig>;
-
-	return {
-		titleTemplate:
-			typeof config.titleTemplate === "string" && config.titleTemplate.trim().length > 0
-				? config.titleTemplate
-				: defaults.titleTemplate,
-		descriptionTemplate:
-			typeof config.descriptionTemplate === "string" && config.descriptionTemplate.trim().length > 0
-				? config.descriptionTemplate
-				: defaults.descriptionTemplate,
-		contentTemplate:
-			typeof config.contentTemplate === "string" && config.contentTemplate.trim().length > 0
-				? config.contentTemplate
-				: null,
-		color:
-			typeof config.color === "string" && config.color.trim().length > 0
-				? config.color.toUpperCase()
-				: null
-	};
 }
 
 function mapNotificationChannel(row: NotificationChannelRow): NotificationChannel {

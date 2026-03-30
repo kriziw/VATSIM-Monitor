@@ -1,4 +1,4 @@
-import { fetchDashboardData, fetchMonitorSnapshot, fetchMonitoringStatus, fetchRecentControllerEvents } from "$lib/server/backend";
+import { fetchDashboardData, fetchMonitorSnapshot, fetchMonitoringStatus, fetchWatchlistEvents } from "$lib/server/backend";
 import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
@@ -11,7 +11,7 @@ export const load = (async ({ locals, depends }) => {
 
 	const [monitoringResult, recentEventsResult, dashboardResult, monitorSnapshotResult] = await Promise.allSettled([
 		fetchMonitoringStatus(),
-		fetchRecentControllerEvents(12),
+		fetchWatchlistEvents(locals.session.session.id, 12),
 		fetchDashboardData(locals.session.session.id),
 		fetchMonitorSnapshot(locals.session.session.id)
 	]);

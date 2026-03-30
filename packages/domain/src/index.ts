@@ -1,14 +1,21 @@
 export type UserRole = "admin" | "user";
 export type LinkedAccountProvider = "local" | "vatsim";
 export type NotificationChannelType = "discord_webhook" | "web_push";
-export type ControllerEventType = "controller_offline" | "controller_online";
+export type ControllerEventType = "controller_change" | "controller_offline" | "controller_online";
 export type MonitorProviderState = "active" | "pending" | "stopped";
+export type DiscordNotificationTemplateType = "controllerChange" | "controllerOffline" | "controllerOnline";
 
-export interface DiscordNotificationChannelConfig {
+export interface DiscordNotificationTemplate {
 	titleTemplate: string;
 	descriptionTemplate: string;
 	contentTemplate: string | null;
 	color: string | null;
+}
+
+export interface DiscordNotificationChannelConfig {
+	controllerOnline: DiscordNotificationTemplate;
+	controllerOffline: DiscordNotificationTemplate;
+	controllerChange: DiscordNotificationTemplate;
 }
 
 export const DISCORD_TEMPLATE_VARIABLES = [
@@ -16,18 +23,101 @@ export const DISCORD_TEMPLATE_VARIABLES = [
 	"{{frequency}}",
 	"{{controllerName}}",
 	"{{controllerCid}}",
+	"{{previousControllerName}}",
+	"{{previousControllerCid}}",
+	"{{previousFrequency}}",
 	"{{eventType}}",
 	"{{eventLabel}}",
 	"{{statusLabel}}"
 ] as const;
 
+export function getDefaultDiscordNotificationTemplate(
+	type: DiscordNotificationTemplateType
+): DiscordNotificationTemplate {
+	if (type === "controllerOnline") {
+		return {
+			titleTemplate: "Controller online: {{callsign}}",
+			descriptionTemplate:
+				"**{{controllerName}}** ({{controllerCid}}) came online on **{{callsign}}** at **{{frequency}}**.",
+			contentTemplate: null,
+			color: "#1C7F58"
+		};
+	}
+
+	if (type === "controllerOffline") {
+		return {
+			titleTemplate: "Controller offline: {{callsign}}",
+			descriptionTemplate:
+				"**{{controllerName}}** ({{controllerCid}}) went offline from **{{callsign}}**.",
+			contentTemplate: null,
+			color: "#AA4D24"
+		};
+	}
+
+	return {
+		titleTemplate: "Controller change: {{callsign}}",
+		descriptionTemplate:
+			"**{{previousControllerName}}** ({{previousControllerCid}}) was replaced by **{{controllerName}}** ({{controllerCid}}) on **{{callsign}}**.",
+		contentTemplate: null,
+		color: "#0E7C86"
+	};
+}
+
+function coerceDiscordNotificationTemplate(
+	raw: unknown,
+	type: DiscordNotificationTemplateType
+): DiscordNotificationTemplate {
+	const defaults = getDefaultDiscordNotificationTemplate(type);
+	const template = raw && typeof raw === "object" ? (raw as Partial<DiscordNotificationTemplate>) : {};
+
+	return {
+		titleTemplate:
+			typeof template.titleTemplate === "string" && template.titleTemplate.trim().length > 0
+				? template.titleTemplate
+				: defaults.titleTemplate,
+		descriptionTemplate:
+			typeof template.descriptionTemplate === "string" && template.descriptionTemplate.trim().length > 0
+				? template.descriptionTemplate
+				: defaults.descriptionTemplate,
+		contentTemplate:
+			typeof template.contentTemplate === "string" && template.contentTemplate.trim().length > 0
+				? template.contentTemplate
+				: null,
+		color:
+			typeof template.color === "string" && template.color.trim().length > 0
+				? template.color.toUpperCase()
+				: defaults.color
+	};
+}
+
+export function coerceDiscordNotificationConfig(raw: unknown): DiscordNotificationChannelConfig {
+	const parsed = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+	const isLegacy =
+		typeof parsed.titleTemplate === "string" ||
+		typeof parsed.descriptionTemplate === "string" ||
+		typeof parsed.contentTemplate === "string" ||
+		typeof parsed.color === "string";
+
+	if (isLegacy) {
+		return {
+			controllerOnline: coerceDiscordNotificationTemplate(parsed, "controllerOnline"),
+			controllerOffline: coerceDiscordNotificationTemplate(parsed, "controllerOffline"),
+			controllerChange: coerceDiscordNotificationTemplate(parsed, "controllerChange")
+		};
+	}
+
+	return {
+		controllerOnline: coerceDiscordNotificationTemplate(parsed.controllerOnline, "controllerOnline"),
+		controllerOffline: coerceDiscordNotificationTemplate(parsed.controllerOffline, "controllerOffline"),
+		controllerChange: coerceDiscordNotificationTemplate(parsed.controllerChange, "controllerChange")
+	};
+}
+
 export function getDefaultDiscordNotificationConfig(): DiscordNotificationChannelConfig {
 	return {
-		titleTemplate: "Controller {{eventLabel}}",
-		descriptionTemplate:
-			"**{{controllerName}}** ({{controllerCid}}) {{statusLabel}} as **{{callsign}}** on **{{frequency}}**.",
-		contentTemplate: null,
-		color: null
+		controllerOnline: getDefaultDiscordNotificationTemplate("controllerOnline"),
+		controllerOffline: getDefaultDiscordNotificationTemplate("controllerOffline"),
+		controllerChange: getDefaultDiscordNotificationTemplate("controllerChange")
 	};
 }
 
@@ -102,6 +192,7 @@ export interface NotificationDelivery {
 
 export interface MonitoringCycleStats {
 	fetchedControllers: number;
+	changedEvents: number;
 	newEvents: number;
 	offlineEvents: number;
 	sentNotifications: number;

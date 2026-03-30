@@ -52,6 +52,18 @@ export function createAccountRouter(
 		res.json(snapshot);
 	});
 
+	router.get("/monitor/events", async (req, res) => {
+		const authenticatedSession = await requireSession(req, res, authService);
+		if (!authenticatedSession) {
+			return;
+		}
+
+		const data = await accountService.getDashboardData(authenticatedSession.user.id);
+		const limit = Number(req.query.limit || "12");
+		const events = await monitoringService.listRecentWatchlistEvents(data.watchRules, limit);
+		res.json(events);
+	});
+
 	router.post("/watch-rules", async (req, res) => {
 		const authenticatedSession = await requireSession(req, res, authService);
 		if (!authenticatedSession) {

@@ -9,7 +9,6 @@
 	let refreshIntervalMs = 0;
 
 	$: watchedControllers = data.monitorSnapshot.watchedControllers;
-	$: otherControllers = data.monitorSnapshot.otherControllers;
 	$: pollIntervalMs = data.monitoringStatus?.pollIntervalMs ?? 15000;
 	$: activeWatchRuleCount = data.dashboardData?.watchRules.filter((watchRule) => watchRule.isActive).length ?? 0;
 
@@ -37,7 +36,7 @@
 	<title>Monitor | VATSIM Monitor</title>
 </svelte:head>
 
-<section class="dashboard-hero">
+<section class="dashboard-hero dashboard-hero--single">
 	<div class="panel dashboard-hero__main">
 		<div class="eyebrow">Monitor</div>
 		<h1>See what ATC is online and what changed recently.</h1>
@@ -65,30 +64,6 @@
 				</div>
 			</div>
 		{/if}
-	</div>
-
-	<div class="panel account-panel">
-		<div class="section-heading">
-			<h2>Quick links</h2>
-		</div>
-		<div class="account-list">
-			<div>
-				<span>Signed in as</span>
-				<strong>{data.session.user.username}</strong>
-			</div>
-			<div>
-				<span>Active watch rules</span>
-				<strong>{activeWatchRuleCount}</strong>
-			</div>
-			<div>
-				<span>Auto refresh</span>
-				<strong>{Math.round(pollIntervalMs / 1000)}s</strong>
-			</div>
-		</div>
-		<div class="button-row compact-row">
-			<a class="button button--primary" href="/settings">Open settings</a>
-			<a class="button button--secondary" href="/settings#watch-rules">Edit watch rules</a>
-		</div>
 	</div>
 </section>
 
@@ -155,8 +130,8 @@
 					<strong>Last cycle</strong>
 					<span>
 						{#if data.monitoringStatus.lastCycle}
-							{data.monitoringStatus.lastCycle.newEvents} online, {data.monitoringStatus.lastCycle.offlineEvents} offline,
-							{data.monitoringStatus.lastCycle.sentNotifications} sent
+							{data.monitoringStatus.lastCycle.newEvents} online, {data.monitoringStatus.lastCycle.changedEvents} changes,
+							{data.monitoringStatus.lastCycle.offlineEvents} offline, {data.monitoringStatus.lastCycle.sentNotifications} sent
 						{:else}
 							No cycle summary yet
 						{/if}
@@ -172,46 +147,33 @@
 		{/if}
 	</article>
 
-	<article class="dashboard-card dashboard-card--wide" id="other-controllers">
-		<div class="section-heading">
-			<h2>Other controllers online</h2>
-		</div>
-		<div class="card-list">
-			{#if otherControllers.length === 0}
-				<p class="empty-state">No additional controllers are currently online.</p>
-			{:else}
-				{#each otherControllers.slice(0, 12) as controller}
-					<div class="stack-card">
-						<div class="stack-card__head">
-							<strong>{controller.callsign}</strong>
-							<span class="status-chip status-chip--muted">Network</span>
-						</div>
-						<div class="meta-row">
-							<span>CID {controller.cid}</span>
-							<span>{controller.frequency || "Frequency pending"}</span>
-							<span>{controller.name || "Name unavailable"}</span>
-						</div>
-					</div>
-				{/each}
-			{/if}
-		</div>
-	</article>
-
 	<article class="dashboard-card dashboard-card--wide" id="recent-activity">
 		<div class="section-heading">
-			<h2>Recent controller activity</h2>
+			<h2>Watchlist changes</h2>
 			<span class="status-chip status-chip--muted">Auto-refreshing</span>
 		</div>
 		<div class="card-list">
-			{#if data.recentEvents.length === 0}
-				<p class="empty-state">No controller events persisted yet.</p>
+			{#if activeWatchRuleCount === 0}
+				<p class="empty-state">Add an active watch rule in Settings and this timeline will start showing relevant controller changes for your watchlist.</p>
+			{:else if data.recentEvents.length === 0}
+				<p class="empty-state">No recent changes matching your active watch rules were found yet.</p>
 			{:else}
 				{#each data.recentEvents as event}
 					<div class="stack-card">
 						<div class="stack-card__head">
 							<strong>{event.callsign}</strong>
-							<span class="status-chip {event.type === 'controller_online' ? 'status-chip--ok' : 'status-chip--muted'}">
-								{event.type === "controller_online" ? "Online" : "Offline"}
+							<span
+								class="status-chip {event.type === 'controller_online'
+									? 'status-chip--ok'
+									: event.type === 'controller_change'
+										? 'status-chip--warn'
+										: 'status-chip--muted'}"
+							>
+								{event.type === "controller_online"
+									? "Online"
+									: event.type === "controller_change"
+										? "Changed"
+										: "Offline"}
 							</span>
 						</div>
 						<div class="meta-row">

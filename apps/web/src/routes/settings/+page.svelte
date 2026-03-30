@@ -1,36 +1,68 @@
 <script lang="ts">
 	import {
 		DISCORD_TEMPLATE_VARIABLES,
+		getDefaultDiscordNotificationTemplate,
 		getDefaultDiscordNotificationConfig,
+		type DiscordNotificationTemplate,
+		type DiscordNotificationTemplateType,
 		type NotificationChannel
 	} from "@vatsim-monitor/domain";
 
 	export let data;
 	export let form;
 
-	const titleTemplateExample = "Controller {{eventLabel}}";
-	const descriptionTemplateExample =
-		"**{{controllerName}}** ({{controllerCid}}) {{statusLabel}} as **{{callsign}}** on **{{frequency}}**.";
-	const contentTemplateExample = "@here {{callsign}} is now {{eventLabel}}";
+	type TemplateField = keyof DiscordNotificationTemplate;
 
-	function fieldValue(
-		channel: NotificationChannel,
-		field: "color" | "contentTemplate" | "descriptionTemplate" | "displayName" | "destination" | "titleTemplate"
-	): string {
+	const templateSections: Array<{
+		key: DiscordNotificationTemplateType;
+		title: string;
+		description: string;
+	}> = [
+		{
+			key: "controllerOnline",
+			title: "Controller online",
+			description: "Used when a watched position was previously empty and is now staffed."
+		},
+		{
+			key: "controllerOffline",
+			title: "Controller offline",
+			description: "Used when a watched position was staffed and is now empty."
+		},
+		{
+			key: "controllerChange",
+			title: "Controller change",
+			description:
+				"Used when the same watched position changes to a different controller within roughly 30 seconds."
+		}
+	];
+
+	function channelFieldValue(channel: NotificationChannel, field: "displayName" | "destination"): string {
 		if (form?.section === "notificationChannels" && form?.channelId === channel.id) {
 			return form?.[field] ?? "";
-		}
-
-		if (field === "displayName") {
-			return channel.displayName ?? "";
 		}
 
 		if (field === "destination") {
 			return "";
 		}
 
+		return channel.displayName ?? "";
+	}
+
+	function templateFieldValue(
+		channel: NotificationChannel,
+		type: DiscordNotificationTemplateType,
+		field: TemplateField
+	): string {
+		if (form?.section === "notificationChannels" && form?.channelId === channel.id) {
+			return form?.config?.[type]?.[field] ?? "";
+		}
+
 		const config = channel.config ?? getDefaultDiscordNotificationConfig();
-		return config[field] ?? "";
+		return config[type]?.[field] ?? "";
+	}
+
+	function templateFieldName(type: DiscordNotificationTemplateType, field: TemplateField): string {
+		return `${type}${field.charAt(0).toUpperCase()}${field.slice(1)}`;
 	}
 </script>
 
@@ -42,7 +74,7 @@
 	<div class="panel dashboard-hero__main">
 		<div class="eyebrow">Settings</div>
 		<h1>Configure what this account watches and where alerts go.</h1>
-		<p>Use the settings page to define watch rules, keep Discord channels in sync, and prepare future notification customization in one place.</p>
+		<p>Use the settings page to define watch rules and tune how Discord alerts should look for controllers coming online, going offline, or changing over on a watched position.</p>
 		<div class="summary-grid">
 			<div class="snapshot-card">
 				<span>Watch rules</span>
@@ -150,18 +182,25 @@
 		<div class="section-heading">
 			<h2>Alert channels</h2>
 		</div>
-		<p>Send controller alerts to Discord webhooks when watched ATC positions come online or drop offline, and tailor the message format for each destination.</p>
+		<p>Send controller alerts to Discord webhooks and tailor each message type so users know whether a position came online, went offline, or changed to a different controller.</p>
 
 		{#if form?.section === "notificationChannels"}
 			<div class="form-error">{form.message}</div>
 		{/if}
 
-		<div class="empty-state template-note">
-			<strong>Template variables</strong>
-			<div class="tag-row">
-				{#each DISCORD_TEMPLATE_VARIABLES as variable}
-					<span class="rule-tag">{variable}</span>
-				{/each}
+		<div class="template-guide">
+			<div class="empty-state template-note">
+				<strong>How Discord templates work</strong>
+				<p>Each channel has three independent message templates. Use them to make online, offline, and handover events look different so recipients can tell what happened at a glance.</p>
+			</div>
+			<div class="empty-state template-note">
+				<strong>Template variables</strong>
+				<p>The values below are replaced automatically when an alert is sent. Change templates can also use previous controller details.</p>
+				<div class="tag-row">
+					{#each DISCORD_TEMPLATE_VARIABLES as variable}
+						<span class="rule-tag">{variable}</span>
+					{/each}
+				</div>
 			</div>
 		</div>
 
@@ -182,44 +221,58 @@
 							<input type="hidden" name="id" value={channel.id} />
 							<label>
 								<span>Channel name</span>
-								<input name="displayName" placeholder="Tower alerts" value={fieldValue(channel, "displayName")} />
+								<input name="displayName" placeholder="Tower alerts" value={channelFieldValue(channel, "displayName")} />
 							</label>
 							<label>
 								<span>Replace webhook URL</span>
 								<input
 									name="destination"
 									placeholder="Leave blank to keep the current webhook"
-									value={fieldValue(channel, "destination")}
+									value={channelFieldValue(channel, "destination")}
 								/>
 							</label>
-							<label>
-								<span>Title template</span>
-								<input
-									name="titleTemplate"
-									placeholder={titleTemplateExample}
-									value={fieldValue(channel, "titleTemplate")}
-								/>
-							</label>
-							<label>
-								<span>Description template</span>
-								<textarea
-									name="descriptionTemplate"
-									rows="4"
-									placeholder={descriptionTemplateExample}
-								>{fieldValue(channel, "descriptionTemplate")}</textarea>
-							</label>
-							<label>
-								<span>Content template</span>
-								<textarea
-									name="contentTemplate"
-									rows="3"
-									placeholder={contentTemplateExample}
-								>{fieldValue(channel, "contentTemplate")}</textarea>
-							</label>
-							<label>
-								<span>Embed colour</span>
-								<input name="color" placeholder="#1C7F58" value={fieldValue(channel, "color")} />
-							</label>
+							<div class="template-section-grid">
+								{#each templateSections as templateSection}
+									<div class="template-card">
+										<div class="template-card__head">
+											<h3>{templateSection.title}</h3>
+											<p>{templateSection.description}</p>
+										</div>
+										<label>
+											<span>Title template</span>
+											<input
+												name={templateFieldName(templateSection.key, "titleTemplate")}
+												placeholder={getDefaultDiscordNotificationTemplate(templateSection.key).titleTemplate}
+												value={templateFieldValue(channel, templateSection.key, "titleTemplate")}
+											/>
+										</label>
+										<label>
+											<span>Description template</span>
+											<textarea
+												name={templateFieldName(templateSection.key, "descriptionTemplate")}
+												rows="4"
+												placeholder={getDefaultDiscordNotificationTemplate(templateSection.key).descriptionTemplate}
+											>{templateFieldValue(channel, templateSection.key, "descriptionTemplate")}</textarea>
+										</label>
+										<label>
+											<span>Content template</span>
+											<textarea
+												name={templateFieldName(templateSection.key, "contentTemplate")}
+												rows="3"
+												placeholder={getDefaultDiscordNotificationTemplate(templateSection.key).contentTemplate ?? "Optional plain-text content above the embed."}
+											>{templateFieldValue(channel, templateSection.key, "contentTemplate")}</textarea>
+										</label>
+										<label>
+											<span>Embed colour</span>
+											<input
+												name={templateFieldName(templateSection.key, "color")}
+												placeholder={getDefaultDiscordNotificationTemplate(templateSection.key).color ?? "#1C7F58"}
+												value={templateFieldValue(channel, templateSection.key, "color")}
+											/>
+										</label>
+									</div>
+								{/each}
+							</div>
 							<button class="button button--secondary" type="submit" formaction="?/saveNotificationChannel">
 								Save notification format
 							</button>

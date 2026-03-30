@@ -1,6 +1,6 @@
 import type { Pool, RowDataPacket } from "mysql2/promise";
 import {
-	getDefaultDiscordNotificationConfig,
+	coerceDiscordNotificationConfig,
 	type DiscordNotificationChannelConfig
 } from "@vatsim-monitor/domain";
 
@@ -25,35 +25,13 @@ interface RoutedDiscordTargetRow extends RowDataPacket {
 }
 
 function parseDiscordConfig(raw: unknown): DiscordNotificationChannelConfig {
-	const defaults = getDefaultDiscordNotificationConfig();
-	let parsed: unknown = {};
-
 	try {
-		parsed = typeof raw === "string" ? JSON.parse(raw) : raw && typeof raw === "object" ? raw : {};
+		return coerceDiscordNotificationConfig(
+			typeof raw === "string" ? JSON.parse(raw) : raw && typeof raw === "object" ? raw : {}
+		);
 	} catch {
-		parsed = {};
+		return coerceDiscordNotificationConfig({});
 	}
-
-	const config = parsed as Partial<DiscordNotificationChannelConfig>;
-
-	return {
-		titleTemplate:
-			typeof config.titleTemplate === "string" && config.titleTemplate.trim().length > 0
-				? config.titleTemplate
-				: defaults.titleTemplate,
-		descriptionTemplate:
-			typeof config.descriptionTemplate === "string" && config.descriptionTemplate.trim().length > 0
-				? config.descriptionTemplate
-				: defaults.descriptionTemplate,
-		contentTemplate:
-			typeof config.contentTemplate === "string" && config.contentTemplate.trim().length > 0
-				? config.contentTemplate
-				: null,
-		color:
-			typeof config.color === "string" && config.color.trim().length > 0
-				? config.color.toUpperCase()
-				: null
-	};
 }
 
 export class NotificationRoutingStore {

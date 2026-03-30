@@ -1,5 +1,9 @@
 import {
+	coerceDiscordNotificationConfig,
+	getDefaultDiscordNotificationTemplate,
 	getDefaultDiscordNotificationConfig,
+	type DiscordNotificationTemplate,
+	type DiscordNotificationTemplateType,
 	type DiscordNotificationChannelConfig,
 	type NotificationChannel,
 	type NotificationChannelType,
@@ -76,23 +80,36 @@ function normalizeTemplateField(
 	return normalized;
 }
 
-function normalizeDiscordConfig(
-	input?: Partial<DiscordNotificationChannelConfig> | null
-): DiscordNotificationChannelConfig {
-	const defaults = getDefaultDiscordNotificationConfig();
+function normalizeDiscordTemplate(
+	template: Partial<DiscordNotificationTemplate> | undefined,
+	type: DiscordNotificationTemplateType,
+	label: string
+): DiscordNotificationTemplate {
+	const defaults = getDefaultDiscordNotificationTemplate(type);
 
 	return {
 		titleTemplate:
-			normalizeTemplateField(input?.titleTemplate ?? defaults.titleTemplate, "Discord title", 256) ??
+			normalizeTemplateField(template?.titleTemplate ?? defaults.titleTemplate, `${label} title`, 256) ??
 			defaults.titleTemplate,
 		descriptionTemplate:
 			normalizeTemplateField(
-				input?.descriptionTemplate ?? defaults.descriptionTemplate,
-				"Discord description",
+				template?.descriptionTemplate ?? defaults.descriptionTemplate,
+				`${label} description`,
 				4000
 			) ?? defaults.descriptionTemplate,
-		contentTemplate: normalizeTemplateField(input?.contentTemplate ?? null, "Discord content", 2000, true),
-		color: normalizeHexColor(input?.color ?? null)
+		contentTemplate: normalizeTemplateField(template?.contentTemplate ?? null, `${label} content`, 2000, true),
+		color: normalizeHexColor(template?.color ?? defaults.color)
+	};
+}
+
+function normalizeDiscordConfig(
+	input?: Partial<DiscordNotificationChannelConfig> | null
+): DiscordNotificationChannelConfig {
+	const config = coerceDiscordNotificationConfig(input ?? getDefaultDiscordNotificationConfig());
+	return {
+		controllerOnline: normalizeDiscordTemplate(config.controllerOnline, "controllerOnline", "Controller online"),
+		controllerOffline: normalizeDiscordTemplate(config.controllerOffline, "controllerOffline", "Controller offline"),
+		controllerChange: normalizeDiscordTemplate(config.controllerChange, "controllerChange", "Controller change")
 	};
 }
 

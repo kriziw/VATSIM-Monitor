@@ -8,19 +8,33 @@ import {
 	updateWatchRule
 } from "$lib/server/backend";
 import { fail, redirect, type Cookies } from "@sveltejs/kit";
-import type { DiscordNotificationChannelConfig } from "@vatsim-monitor/domain";
+import type {
+	DiscordNotificationChannelConfig,
+	DiscordNotificationTemplateType
+} from "@vatsim-monitor/domain";
 import type { Actions, PageServerLoad } from "./$types";
 
 function getSessionId(cookies: Cookies): string {
 	return cookies.get("vm_session") || "";
 }
 
+function readDiscordTemplate(
+	form: FormData,
+	prefix: DiscordNotificationTemplateType
+): DiscordNotificationChannelConfig["controllerOnline"] {
+	return {
+		titleTemplate: String(form.get(`${prefix}TitleTemplate`) || ""),
+		descriptionTemplate: String(form.get(`${prefix}DescriptionTemplate`) || ""),
+		contentTemplate: String(form.get(`${prefix}ContentTemplate`) || ""),
+		color: String(form.get(`${prefix}Color`) || "")
+	};
+}
+
 function readDiscordConfig(form: FormData): Partial<DiscordNotificationChannelConfig> {
 	return {
-		titleTemplate: String(form.get("titleTemplate") || ""),
-		descriptionTemplate: String(form.get("descriptionTemplate") || ""),
-		contentTemplate: String(form.get("contentTemplate") || ""),
-		color: String(form.get("color") || "")
+		controllerOnline: readDiscordTemplate(form, "controllerOnline"),
+		controllerOffline: readDiscordTemplate(form, "controllerOffline"),
+		controllerChange: readDiscordTemplate(form, "controllerChange")
 	};
 }
 
@@ -153,10 +167,7 @@ export const actions = {
 				message: error?.body?.message ?? error?.message ?? "Unable to save notification settings.",
 				displayName,
 				destination,
-				titleTemplate: config.titleTemplate ?? "",
-				descriptionTemplate: config.descriptionTemplate ?? "",
-				contentTemplate: config.contentTemplate ?? "",
-				color: config.color ?? ""
+				config
 			});
 		}
 	},
