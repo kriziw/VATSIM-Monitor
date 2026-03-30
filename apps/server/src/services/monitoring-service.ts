@@ -49,6 +49,7 @@ export class MonitoringService {
 	private readonly notificationDeliveryStore: NotificationDeliveryStore;
 	private readonly topdownProviderState: "active" | "pending" | "stopped";
 	private timer: ReturnType<typeof setInterval> | null = null;
+	private pollInFlight = false;
 	private currentControllers = new Map<number, VatsimControllerRecord>();
 	private lastPollAt: string | null = null;
 	private lastSuccessAt: string | null = null;
@@ -110,6 +111,11 @@ export class MonitoringService {
 	}
 
 	private async pollOnce(): Promise<void> {
+		if (this.pollInFlight) {
+			return;
+		}
+
+		this.pollInFlight = true;
 		this.lastPollAt = new Date().toISOString();
 		const occurredAt = new Date();
 
@@ -183,6 +189,8 @@ export class MonitoringService {
 			this.lastCycle = cycleStats;
 		} catch (error: any) {
 			this.lastError = error?.message || "Unexpected monitoring failure.";
+		} finally {
+			this.pollInFlight = false;
 		}
 	}
 
