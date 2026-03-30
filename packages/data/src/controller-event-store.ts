@@ -82,13 +82,14 @@ export class ControllerEventStore {
 		return mapControllerEvent(rows[0]);
 	}
 
-	public async listRecent(limit = 20): Promise<ControllerEvent[]> {
+	public async listRecent(limit = 20, offset = 0): Promise<ControllerEvent[]> {
 		const safeLimit = Math.max(1, Math.min(100, limit));
+		const safeOffset = Math.max(0, offset);
 		const [rows] = await this.pool.execute<ControllerEventRow[]>(
 			`SELECT id, event_type, source, controller_cid, callsign, frequency, occurred_at, created_at
 			 FROM controller_events
 			 ORDER BY occurred_at DESC
-			 LIMIT ${safeLimit}`
+			 LIMIT ${safeLimit} OFFSET ${safeOffset}`
 		);
 
 		return rows.map(mapControllerEvent);

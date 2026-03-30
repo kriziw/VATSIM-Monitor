@@ -45,21 +45,21 @@
 		{#if data.statusError}
 			<div class="form-error">{data.statusError}</div>
 		{:else if data.monitoringStatus}
-			<div class="summary-grid">
-				<div class="snapshot-card">
-					<span>Controllers online</span>
+			<div class="monitor-strip">
+				<div class="monitor-strip__item">
+					<span>Online</span>
 					<strong>{data.monitoringStatus.currentOnlineCount}</strong>
 				</div>
-				<div class="snapshot-card">
-					<span>Poll interval</span>
-					<strong>{Math.round(data.monitoringStatus.pollIntervalMs / 1000)}s</strong>
-				</div>
-				<div class="snapshot-card">
-					<span>Watched online</span>
+				<div class="monitor-strip__item">
+					<span>Watched</span>
 					<strong>{watchedControllers.length}</strong>
 				</div>
-				<div class="snapshot-card">
-					<span>Last success</span>
+				<div class="monitor-strip__item">
+					<span>Refresh</span>
+					<strong>{Math.round(data.monitoringStatus.pollIntervalMs / 1000)}s</strong>
+				</div>
+				<div class="monitor-strip__item">
+					<span>Status</span>
 					<strong>{data.monitoringStatus.lastSuccessAt ? "Live" : "Waiting"}</strong>
 				</div>
 			</div>

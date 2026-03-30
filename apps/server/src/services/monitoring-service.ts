@@ -133,17 +133,29 @@ export class MonitoringService {
 			return [];
 		}
 
-		const recentEvents = await this.controllerEventStore.listRecent(Math.min(Math.max(limit * 6, 24), 100));
 		const matchingEvents: ControllerEvent[] = [];
+		const pageSize = Math.min(Math.max(limit * 4, 24), 100);
+		const maxScan = 500;
 
-		for (const event of recentEvents) {
-			const matchedRules = await this.getMatchedRulesForCallsign(activeWatchRules, event.callsign);
-			if (matchedRules.length === 0) {
-				continue;
+		for (let offset = 0; offset < maxScan && matchingEvents.length < limit; offset += pageSize) {
+			const recentEvents = await this.controllerEventStore.listRecent(pageSize, offset);
+			if (recentEvents.length === 0) {
+				break;
 			}
 
-			matchingEvents.push(event);
-			if (matchingEvents.length >= limit) {
+			for (const event of recentEvents) {
+				const matchedRules = await this.getMatchedRulesForCallsign(activeWatchRules, event.callsign);
+				if (matchedRules.length === 0) {
+					continue;
+				}
+
+				matchingEvents.push(event);
+				if (matchingEvents.length >= limit) {
+					break;
+				}
+			}
+
+			if (recentEvents.length < pageSize) {
 				break;
 			}
 		}
@@ -498,9 +510,13 @@ export class MonitoringService {
 		}
 
 		if (
-			pending.controller.cid === controller.cid ||
-			occurredAt.getTime() - pending.occurredAtMs > this.controllerChangeWindowMs
+			pending.controller.cid === controller.cid
 		) {
+			this.pendingOfflineControllers.delete(key);
+			return undefined;
+		}
+
+		if (occurredAt.getTime() - pending.occurredAtMs > this.controllerChangeWindowMs) {
 			return undefined;
 		}
 
