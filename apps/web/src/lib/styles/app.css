@@ -325,6 +325,35 @@ textarea {
 	gap: 14px;
 }
 
+.monitor-strip {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 10px;
+	margin-top: 18px;
+}
+
+.monitor-strip__item {
+	display: grid;
+	gap: 4px;
+	padding: 14px 16px;
+	border-radius: 16px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.72);
+}
+
+.monitor-strip__item span {
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.monitor-strip__item strong {
+	font-size: 1.1rem;
+	color: var(--navy);
+}
+
 .snapshot-card,
 .metric,
 .stack-card {
@@ -655,6 +684,7 @@ textarea {
 	.focus-list,
 	.summary-grid,
 	.snapshot-grid,
+	.monitor-strip,
 	.template-guide,
 	.template-section-grid {
 		grid-template-columns: 1fr;

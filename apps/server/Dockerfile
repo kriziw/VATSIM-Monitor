@@ -22,12 +22,16 @@ RUN npm run build --workspace @vatsim-monitor/integrations
 RUN npm run build --workspace @vatsim-monitor/server
 RUN test -f /app/apps/server/dist/index.js
 
+FROM build AS prod-deps
+
+RUN npm prune --omit=dev
+
 FROM node:20-alpine AS runtime
 
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=build /app/node_modules ./node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/apps/server ./apps/server
 COPY --from=build /app/packages/data ./packages/data

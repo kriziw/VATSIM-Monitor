@@ -20,7 +20,7 @@ function buildAuthRateLimitKey(req: Request): string {
 					: "";
 
 	const normalizedIdentifier = identifier.trim().toLowerCase();
-	return normalizedIdentifier.length > 0 ? `auth:${normalizedIdentifier}` : `ip:${req.ip}`;
+	return normalizedIdentifier.length > 0 ? `ip:${req.ip}:auth:${normalizedIdentifier}` : `ip:${req.ip}`;
 }
 
 export function createAuthRouter(vatsimOAuthEnabled: boolean, authService: AuthService): Router {

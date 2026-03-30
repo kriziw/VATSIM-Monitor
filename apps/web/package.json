@@ -10,8 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vatsim-monitor/domain": "file:../../packages/domain",
-    "@vatsim-monitor/integrations": "file:../../packages/integrations"
+    "@vatsim-monitor/domain": "file:../../packages/domain"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.12",
