@@ -2,10 +2,12 @@ import { fetchDashboardData, fetchMonitorSnapshot, fetchMonitoringStatus, fetchR
 import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load = (async ({ locals }) => {
+export const load = (async ({ locals, depends }) => {
 	if (!locals.session) {
 		throw redirect(302, "/login");
 	}
+
+	depends("app:monitor");
 
 	const [monitoringResult, recentEventsResult, dashboardResult, monitorSnapshotResult] = await Promise.allSettled([
 		fetchMonitoringStatus(),

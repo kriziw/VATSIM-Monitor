@@ -18,6 +18,18 @@ interface NotificationChannelRow extends RowDataPacket {
 	created_at: Date;
 }
 
+function maskDiscordWebhook(destination: string): string {
+	const match = destination.match(/^(https:\/\/discord\.com\/api\/webhooks\/)(\d+)\/([A-Za-z0-9_-]+)$/);
+	if (!match) {
+		return "Stored webhook";
+	}
+
+	const [, prefix, id, token] = match;
+	const idPreview = id.length > 6 ? `${id.slice(0, 3)}...${id.slice(-3)}` : id;
+	const tokenPreview = token.length > 8 ? `${token.slice(0, 4)}...${token.slice(-4)}` : "••••";
+	return `${prefix}${idPreview}/${tokenPreview}`;
+}
+
 function parseDiscordConfig(raw: unknown): DiscordNotificationChannelConfig {
 	const defaults = getDefaultDiscordNotificationConfig();
 	let parsed: unknown = {};
@@ -56,7 +68,8 @@ function mapNotificationChannel(row: NotificationChannelRow): NotificationChanne
 		userId: row.user_id,
 		type: row.type,
 		displayName: row.display_name,
-		destination: row.destination,
+		destination: "",
+		destinationMasked: maskDiscordWebhook(row.destination),
 		config: row.type === "discord_webhook" ? parseDiscordConfig(row.config_json) : null,
 		isActive: row.is_active === 1,
 		createdAt: row.created_at.toISOString()

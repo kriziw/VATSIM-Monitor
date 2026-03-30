@@ -1,26 +1,35 @@
 <script lang="ts">
-	import { invalidateAll } from "$app/navigation";
-	import { onMount } from "svelte";
+	import { browser } from "$app/environment";
+	import { invalidate } from "$app/navigation";
+	import { onDestroy } from "svelte";
 
 	export let data;
 
 	let refreshTimer: ReturnType<typeof setInterval> | null = null;
+	let refreshIntervalMs = 0;
 
 	$: watchedControllers = data.monitorSnapshot.watchedControllers;
 	$: otherControllers = data.monitorSnapshot.otherControllers;
 	$: pollIntervalMs = data.monitoringStatus?.pollIntervalMs ?? 15000;
 	$: activeWatchRuleCount = data.dashboardData?.watchRules.filter((watchRule) => watchRule.isActive).length ?? 0;
 
-	onMount(() => {
-		refreshTimer = setInterval(() => {
-			void invalidateAll();
-		}, pollIntervalMs);
+	function clearRefreshTimer() {
+		if (refreshTimer) {
+			clearInterval(refreshTimer);
+			refreshTimer = null;
+		}
+	}
 
-		return () => {
-			if (refreshTimer) {
-				clearInterval(refreshTimer);
-			}
-		};
+	$: if (browser && pollIntervalMs > 0 && pollIntervalMs !== refreshIntervalMs) {
+		clearRefreshTimer();
+		refreshIntervalMs = pollIntervalMs;
+		refreshTimer = setInterval(() => {
+			void invalidate("app:monitor");
+		}, pollIntervalMs);
+	}
+
+	onDestroy(() => {
+		clearRefreshTimer();
 	});
 </script>
 

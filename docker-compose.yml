@@ -26,6 +26,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 8080
+      TRUST_PROXY: ${TRUST_PROXY:-false}
       MYSQL_HOST: mariadb
       MYSQL_PORT: 3306
       MYSQL_USER: ${MYSQL_USER:-vatsim_monitor}

@@ -26,7 +26,7 @@
 		}
 
 		if (field === "destination") {
-			return channel.destination ?? "";
+			return "";
 		}
 
 		const config = channel.config ?? getDefaultDiscordNotificationConfig();
@@ -177,7 +177,7 @@
 								{channel.isActive ? "Active" : "Disabled"}
 							</span>
 						</div>
-						<p class="mono">{channel.destination}</p>
+						<p class="mono">Saved webhook: {channel.destinationMasked}</p>
 						<form class="form-grid settings-form" method="post">
 							<input type="hidden" name="id" value={channel.id} />
 							<label>
@@ -185,8 +185,12 @@
 								<input name="displayName" placeholder="Tower alerts" value={fieldValue(channel, "displayName")} />
 							</label>
 							<label>
-								<span>Webhook URL</span>
-								<input name="destination" placeholder="https://discord.com/api/webhooks/..." value={fieldValue(channel, "destination")} />
+								<span>Replace webhook URL</span>
+								<input
+									name="destination"
+									placeholder="Leave blank to keep the current webhook"
+									value={fieldValue(channel, "destination")}
+								/>
 							</label>
 							<label>
 								<span>Title template</span>

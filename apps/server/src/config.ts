@@ -1,6 +1,7 @@
 export interface AppConfig {
 	host: string;
 	port: number;
+	trustProxy: boolean | number | string;
 	vatsimOAuthEnabled: boolean;
 	pollIntervalMs: number;
 	database: {
@@ -12,10 +13,32 @@ export interface AppConfig {
 	};
 }
 
+function parseTrustProxy(value: string | undefined): boolean | number | string {
+	if (!value || value.trim().length === 0) {
+		return false;
+	}
+
+	const normalized = value.trim().toLowerCase();
+	if (normalized === "true") {
+		return true;
+	}
+
+	if (normalized === "false") {
+		return false;
+	}
+
+	if (/^\d+$/.test(normalized)) {
+		return Number(normalized);
+	}
+
+	return value.trim();
+}
+
 export function loadConfig(): AppConfig {
 	return {
 		host: process.env.HOST || "0.0.0.0",
 		port: Number(process.env.PORT || "8080"),
+		trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
 		vatsimOAuthEnabled: process.env.VATSIM_OAUTH_ENABLED === "true",
 		pollIntervalMs: Number(process.env.MONITOR_POLL_INTERVAL_MS || "15000"),
 		database: {

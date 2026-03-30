@@ -290,19 +290,6 @@ export class MonitoringService {
 		routedTargets: Awaited<ReturnType<NotificationRoutingStore["listActiveDiscordTargets"]>>,
 		ignoredControllerIds: Set<number>
 	): Promise<{ sentNotifications: number; skippedNotifications: number }> {
-		const event = await this.controllerEventStore.create({
-			type,
-			source: "vatsim",
-			controllerCid: controller.cid,
-			callsign: controller.callsign,
-			frequency: controller.frequency,
-			payloadJson: JSON.stringify({
-				name: controller.name
-			}),
-			dedupeKey: `${type}:${controller.cid}:${controller.callsign}:${controller.frequency}:${occurredAt.toISOString()}`,
-			occurredAt
-		});
-
 		const relatedCallsigns = new Set<string>([controller.callsign]);
 		for (const coveredCallsign of await this.topdownResolver.resolveCoveredCallsigns(controller.callsign)) {
 			relatedCallsigns.add(coveredCallsign.toUpperCase());
@@ -334,17 +321,28 @@ export class MonitoringService {
 		let sentNotifications = 0;
 		let skippedNotifications = 0;
 
+		if (ignoredControllerIds.has(controller.cid)) {
+			return {
+				sentNotifications: 0,
+				skippedNotifications: matchingTargets.size
+			};
+		}
+
+		const event = await this.controllerEventStore.create({
+			type,
+			source: "vatsim",
+			controllerCid: controller.cid,
+			callsign: controller.callsign,
+			frequency: controller.frequency,
+			payloadJson: JSON.stringify({
+				name: controller.name
+			}),
+			dedupeKey: `${type}:${controller.cid}:${controller.callsign}:${controller.frequency}:${occurredAt.toISOString()}`,
+			occurredAt
+		});
+
 		for (const target of matchingTargets.values()) {
 			const delivery = await this.notificationDeliveryStore.createPending(event.id, target.channelId);
-
-			if (ignoredControllerIds.has(controller.cid)) {
-				await this.notificationDeliveryStore.markSkipped(
-					delivery.id,
-					"Controller is marked as ignored for tracking."
-				);
-				skippedNotifications += 1;
-				continue;
-			}
 
 			try {
 				await this.discordNotifier.sendWebhook(
