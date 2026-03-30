@@ -1,8 +1,11 @@
 import type {
 	ControllerEvent,
 	ControllerEventType,
+	MonitorController,
+	MonitorSnapshot,
 	MonitorStatus,
-	MonitoringCycleStats
+	MonitoringCycleStats,
+	WatchRule
 } from "@vatsim-monitor/domain";
 import type {
 	ControllerEventStore,
@@ -108,6 +111,86 @@ export class MonitoringService {
 
 	public async listRecentEvents(limit = 20): Promise<ControllerEvent[]> {
 		return this.controllerEventStore.listRecent(limit);
+	}
+
+	public async getMonitorSnapshot(watchRules: WatchRule[]): Promise<MonitorSnapshot> {
+		const activeWatchRules = watchRules.filter((watchRule) => watchRule.isActive);
+		const watchedControllers: MonitorSnapshot["watchedControllers"] = [];
+		const otherControllers: MonitorController[] = [];
+
+		for (const controller of [...this.currentControllers.values()].sort((left, right) =>
+			left.callsign.localeCompare(right.callsign)
+		)) {
+			const matchedRules = [];
+			const relatedCallsigns = new Set<string>([controller.callsign.toUpperCase()]);
+
+			for (const watchRule of activeWatchRules) {
+				if (patternMatches(watchRule.pattern, controller.callsign)) {
+					matchedRules.push({
+						watchRuleId: watchRule.id,
+						pattern: watchRule.pattern,
+						matchType: "direct" as const
+					});
+					continue;
+				}
+
+				if (!watchRule.topdown) {
+					continue;
+				}
+
+				if (relatedCallsigns.size === 1) {
+					for (const relatedCallsign of await this.topdownResolver.resolveCoveredCallsigns(controller.callsign)) {
+						relatedCallsigns.add(relatedCallsign.toUpperCase());
+					}
+				}
+
+				for (const relatedCallsign of relatedCallsigns) {
+					if (relatedCallsign === controller.callsign.toUpperCase()) {
+						continue;
+					}
+
+					if (patternMatches(watchRule.pattern, relatedCallsign)) {
+						matchedRules.push({
+							watchRuleId: watchRule.id,
+							pattern: watchRule.pattern,
+							matchType: "topdown" as const
+						});
+						break;
+					}
+				}
+			}
+
+			const monitorController: MonitorController = {
+				cid: controller.cid,
+				callsign: controller.callsign,
+				frequency: controller.frequency,
+				name: controller.name
+			};
+
+			if (matchedRules.length > 0) {
+				watchedControllers.push({
+					...monitorController,
+					matchedRules
+				});
+			} else {
+				otherControllers.push(monitorController);
+			}
+		}
+
+		watchedControllers.sort((left, right) => {
+			const leftDirect = left.matchedRules.some((rule) => rule.matchType === "direct") ? 0 : 1;
+			const rightDirect = right.matchedRules.some((rule) => rule.matchType === "direct") ? 0 : 1;
+			if (leftDirect !== rightDirect) {
+				return leftDirect - rightDirect;
+			}
+
+			return left.callsign.localeCompare(right.callsign);
+		});
+
+		return {
+			watchedControllers,
+			otherControllers
+		};
 	}
 
 	private async pollOnce(): Promise<void> {

@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import type { AuthService } from "../services/auth-service.js";
 import { AccountError, AccountService } from "../services/account-service.js";
+import type { MonitoringService } from "../services/monitoring-service.js";
 
 async function requireSession(req: Request, res: Response, authService: AuthService) {
 	const sessionId = req.header("x-session-id") || "";
@@ -14,7 +15,11 @@ async function requireSession(req: Request, res: Response, authService: AuthServ
 	return authenticatedSession;
 }
 
-export function createAccountRouter(authService: AuthService, accountService: AccountService): Router {
+export function createAccountRouter(
+	authService: AuthService,
+	accountService: AccountService,
+	monitoringService: MonitoringService
+): Router {
 	const router = Router();
 
 	router.get("/dashboard", async (req, res) => {
@@ -25,6 +30,17 @@ export function createAccountRouter(authService: AuthService, accountService: Ac
 
 		const data = await accountService.getDashboardData(authenticatedSession.user.id);
 		res.json(data);
+	});
+
+	router.get("/monitor", async (req, res) => {
+		const authenticatedSession = await requireSession(req, res, authService);
+		if (!authenticatedSession) {
+			return;
+		}
+
+		const data = await accountService.getDashboardData(authenticatedSession.user.id);
+		const snapshot = await monitoringService.getMonitorSnapshot(data.watchRules);
+		res.json(snapshot);
 	});
 
 	router.post("/watch-rules", async (req, res) => {

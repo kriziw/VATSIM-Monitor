@@ -3,6 +3,7 @@ import { error } from "@sveltejs/kit";
 import type {
 	AuthenticatedSession,
 	ControllerEvent,
+	MonitorSnapshot,
 	MonitorStatus,
 	NotificationChannel,
 	WatchRule
@@ -105,6 +106,10 @@ async function requestWithSession(
 
 export async function fetchDashboardData(sessionId: string): Promise<DashboardResponse> {
 	return requestWithSession(sessionId, "/api/v1/dashboard") as Promise<DashboardResponse>;
+}
+
+export async function fetchMonitorSnapshot(sessionId: string): Promise<MonitorSnapshot> {
+	return requestWithSession(sessionId, "/api/v1/monitor") as Promise<MonitorSnapshot>;
 }
 
 export async function fetchMonitoringStatus(): Promise<MonitorStatus> {

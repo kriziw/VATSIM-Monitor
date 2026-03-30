@@ -92,3 +92,25 @@ export interface MonitorStatus {
 		ukTopdown: MonitorProviderState;
 	};
 }
+
+export interface MonitorController {
+	cid: number;
+	callsign: string;
+	frequency: string;
+	name: string;
+}
+
+export interface MonitorRuleMatch {
+	watchRuleId: string;
+	pattern: string;
+	matchType: "direct" | "topdown";
+}
+
+export interface WatchedMonitorController extends MonitorController {
+	matchedRules: MonitorRuleMatch[];
+}
+
+export interface MonitorSnapshot {
+	watchedControllers: WatchedMonitorController[];
+	otherControllers: MonitorController[];
+}
