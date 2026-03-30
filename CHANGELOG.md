@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.4.1...v0.5.0) (2026-03-30)
+
+
+### Features
+
+* expand monitor events and discord customization ([#35](https://github.com/kriziw/VATSIM-Monitor/issues/35)) ([b00460f](https://github.com/kriziw/VATSIM-Monitor/commit/b00460f8a6b3123987091e9722783875085bab57))
+
 ## [0.4.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.4.0...v0.4.1) (2026-03-30)
 
 
