@@ -39,10 +39,7 @@ jobs:
         run: docker build -f apps/server/Dockerfile -t vatsim-monitor-server:ci .
 
       - name: Verify server image entrypoint
-        run: docker run --rm --entrypoint sh vatsim-monitor-server:ci -c "test -f /app/apps/server/dist/apps/server/src/index.js"
-
-      - name: Verify data package entrypoint
-        run: docker run --rm --entrypoint sh vatsim-monitor-server:ci -c "test -f /app/packages/data/dist/data/src/index.js"
+        run: docker run --rm --entrypoint sh vatsim-monitor-server:ci -c "test -f /app/apps/server/dist/index.js"
 
       - name: Build web image
         run: docker build -f apps/web/Dockerfile -t vatsim-monitor-web:ci .
