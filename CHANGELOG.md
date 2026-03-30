@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.1...v0.2.2) (2026-03-30)
+
+
+### Bug Fixes
+
+* run compiled migrations in server image ([787a024](https://github.com/kriziw/VATSIM-Monitor/commit/787a0242777e6cd8437b39c1882df454c62c13be))
+* run compiled migrations in server image ([89d1e23](https://github.com/kriziw/VATSIM-Monitor/commit/89d1e2307cb8076f35e3fe9c164d902277bdac95))
+
 ## [0.2.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.0...v0.2.1) (2026-03-30)
 
 
