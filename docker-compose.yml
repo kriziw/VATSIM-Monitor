@@ -44,10 +44,12 @@ services:
       - server
     environment:
       ORIGIN: ${ORIGIN:-http://localhost:3000}
+      PROTOCOL_HEADER: ${PROTOCOL_HEADER:-}
+      HOST_HEADER: ${HOST_HEADER:-}
+      PORT_HEADER: ${PORT_HEADER:-}
       PRIVATE_API_BASE_URL: ${PRIVATE_API_BASE_URL:-http://server:8080}
     ports:
       - "${WEB_PORT:-3000}:3000"
 
 volumes:
   mariadb_data:
-

@@ -86,6 +86,21 @@ The default `docker-compose.yml` now targets the published Docker Hub images so 
 4. Run `docker compose pull`.
 5. Run `docker compose up -d`.
 
+### Reverse Proxy Setup
+
+If you access the web app through a domain or trusted reverse proxy, also set these in `.env`:
+
+```env
+ORIGIN=https://your-public-web-url.example
+PROTOCOL_HEADER=x-forwarded-proto
+HOST_HEADER=x-forwarded-host
+PORT_HEADER=x-forwarded-port
+```
+
+`ORIGIN` must exactly match the URL users open in the browser. The forwarded-header values are needed when the SvelteKit web container sits behind a proxy and would otherwise reject login or registration form posts with:
+
+`Cross-site POST form submissions are forbidden`
+
 After startup:
 
 - the web app is available on `http://localhost:${WEB_PORT}` and defaults to `http://localhost:3000`

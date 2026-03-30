@@ -65,6 +65,12 @@ Most important values:
   Host port for the frontend. Default: `3000`
 - `ORIGIN`
   Public URL used by the SvelteKit web app for CSRF-safe form submissions. For local installs, keep `http://localhost:3000`. If you access the app through a domain or reverse proxy, set this to the exact public URL, for example `https://monitor.example.com`.
+- `PROTOCOL_HEADER`
+  Optional reverse-proxy header name for the original protocol. Use `x-forwarded-proto` behind a trusted reverse proxy.
+- `HOST_HEADER`
+  Optional reverse-proxy header name for the original host. Use `x-forwarded-host` behind a trusted reverse proxy.
+- `PORT_HEADER`
+  Optional reverse-proxy header name for the original port. Use `x-forwarded-port` if your proxy forwards a non-standard external port.
 - `PRIVATE_API_BASE_URL`
   Internal URL the web container uses to reach the backend. Leave this as `http://server:8080` for normal compose installs.
 - `MONITOR_POLL_INTERVAL_MS`
@@ -81,11 +87,18 @@ MYSQL_ROOT_PASSWORD=change-this-root-password
 MYSQL_PASSWORD=change-this-app-password
 ```
 
-If you are not using plain localhost, also set:
+If you are using a public domain or reverse proxy, also set:
 
 ```env
 ORIGIN=https://your-public-web-url.example
+PROTOCOL_HEADER=x-forwarded-proto
+HOST_HEADER=x-forwarded-host
+PORT_HEADER=x-forwarded-port
 ```
+
+These values follow the official SvelteKit `adapter-node` guidance for preventing:
+
+`Cross-site POST form submissions are forbidden`
 
 Once `.env` is set, bring the stack up with:
 
@@ -116,4 +129,3 @@ If you want to build locally instead of pulling published images:
 - The first release line should stay in `0.x` to make the testing state explicit.
 - Keep `VATSIM_OAUTH_ENABLED=false` for the first deployment.
 - If you want to manage migrations separately later, set `RUN_MIGRATIONS=false` for the server container and run them as a one-off task instead.
-
