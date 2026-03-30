@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.3.1...v0.4.0) (2026-03-30)
+
+
+### Features
+
+* improve monitor focus, discord templates, and branding ([#31](https://github.com/kriziw/VATSIM-Monitor/issues/31)) ([9440599](https://github.com/kriziw/VATSIM-Monitor/commit/94405995a187fab3182ee6336a1620ffc32b8328))
+
 ## [0.3.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.3.0...v0.3.1) (2026-03-30)
 
 
