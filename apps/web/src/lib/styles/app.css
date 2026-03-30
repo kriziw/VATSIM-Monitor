@@ -936,12 +936,74 @@ textarea {
 	gap: 16px;
 }
 
+.alerts-workspace__main--compact {
+	align-content: start;
+}
+
 .alert-editor__subtitle {
 	margin: 6px 0 0;
 }
 
 .alert-add-form {
 	margin-top: 18px;
+}
+
+.compact-editor-grid {
+	display: grid;
+	gap: 14px;
+}
+
+.compact-editor-field {
+	display: grid;
+	gap: 8px;
+	padding: 16px;
+	border-radius: 18px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.72);
+}
+
+.compact-editor-field--active {
+	border-color: rgba(12, 39, 70, 0.2);
+	box-shadow: 0 14px 32px rgba(12, 39, 70, 0.06);
+}
+
+.compact-editor-field span {
+	color: var(--navy);
+	font-weight: 700;
+}
+
+.compact-editor-field textarea {
+	min-height: 72px;
+	padding: 12px 14px;
+	border-radius: 14px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.96);
+	resize: vertical;
+	font: inherit;
+}
+
+.compact-editor-field--large textarea {
+	min-height: 180px;
+}
+
+.token-board {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.token-chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 10px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.82);
+	cursor: grab;
+}
+
+.token-chip code {
+	color: var(--navy);
 }
 
 .preview-card {

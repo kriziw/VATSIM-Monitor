@@ -9,8 +9,7 @@
 	export let data;
 	export let form;
 
-	type FieldKey = "color" | "contentTemplate" | "descriptionTemplate" | "titleTemplate";
-	type EditorFieldKey = Exclude<FieldKey, "color">;
+	type EditorFieldKey = "contentTemplate" | "descriptionTemplate" | "titleTemplate";
 	type TemplateVariableKey =
 		| "{{callsign}}"
 		| "{{frequency}}"
@@ -23,49 +22,11 @@
 		| "{{eventLabel}}"
 		| "{{statusLabel}}";
 
-	type TemplateBlock =
-		| {
-				id: string;
-				kind: "text";
-				value: string;
-		  }
-		| {
-				id: string;
-				kind: "variable";
-				value: TemplateVariableKey;
-		  };
-
 	type TemplateEditorState = {
 		color: string;
-		contentTemplate: TemplateBlock[];
-		descriptionTemplate: TemplateBlock[];
-		titleTemplate: TemplateBlock[];
-	};
-
-	type DragPayload =
-		| {
-				field?: EditorFieldKey;
-				index?: number;
-				kind: "existing";
-		  }
-		| {
-				kind: "palette-text";
-		  }
-		| {
-				kind: "palette-variable";
-				value: TemplateVariableKey;
-		  };
-
-	const editorFieldLabels: Record<EditorFieldKey, string> = {
-		titleTemplate: "Title",
-		descriptionTemplate: "Description",
-		contentTemplate: "Content"
-	};
-
-	const fieldPlaceholders: Record<EditorFieldKey, string> = {
-		titleTemplate: "Drag blocks here to build the notification title.",
-		descriptionTemplate: "Build the main embed description here.",
-		contentTemplate: "Optional plain-text content above the embed."
+		contentTemplate: string;
+		descriptionTemplate: string;
+		titleTemplate: string;
 	};
 
 	const templateSections: Array<{
@@ -178,66 +139,28 @@
 		}
 	};
 
-	const fieldOrder: EditorFieldKey[] = ["titleTemplate", "descriptionTemplate", "contentTemplate"];
-	const tokenRegex = new RegExp(
-		`(${Object.keys(variableDescriptions)
-			.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-			.join("|")})`,
-		"g"
-	);
-
-	function createBlock(kind: TemplateBlock["kind"], value: string): TemplateBlock {
-		return {
-			id: `${kind}-${Math.random().toString(36).slice(2, 10)}`,
-			kind,
-			value: value as any
-		};
-	}
-
-	function parseBlocks(template: string | null | undefined): TemplateBlock[] {
-		const raw = template ?? "";
-		if (!raw) {
-			return [];
-		}
-
-		return raw
-			.split(tokenRegex)
-			.filter((part) => part.length > 0)
-			.map((part) => {
-				if (part in variableDescriptions) {
-					return createBlock("variable", part);
-				}
-
-				return createBlock("text", part);
-			});
-	}
-
-	function serializeBlocks(blocks: TemplateBlock[]): string {
-		return blocks.map((block) => block.value).join("");
-	}
-
 	function buildTemplateState(channel: NotificationChannel): Record<DiscordNotificationTemplateType, TemplateEditorState> {
 		const config = channel.config ?? getDefaultDiscordNotificationConfig();
 		return {
 			controllerOnline: {
-				titleTemplate: parseBlocks(config.controllerOnline.titleTemplate),
-				descriptionTemplate: parseBlocks(config.controllerOnline.descriptionTemplate),
-				contentTemplate: parseBlocks(config.controllerOnline.contentTemplate),
+				titleTemplate: config.controllerOnline.titleTemplate,
+				descriptionTemplate: config.controllerOnline.descriptionTemplate,
+				contentTemplate: config.controllerOnline.contentTemplate ?? "",
 				color: config.controllerOnline.color ?? getDefaultDiscordNotificationTemplate("controllerOnline").color ?? "#1C7F58"
 			},
 			controllerOffline: {
-				titleTemplate: parseBlocks(config.controllerOffline.titleTemplate),
-				descriptionTemplate: parseBlocks(config.controllerOffline.descriptionTemplate),
-				contentTemplate: parseBlocks(config.controllerOffline.contentTemplate),
+				titleTemplate: config.controllerOffline.titleTemplate,
+				descriptionTemplate: config.controllerOffline.descriptionTemplate,
+				contentTemplate: config.controllerOffline.contentTemplate ?? "",
 				color:
 					config.controllerOffline.color ??
 					getDefaultDiscordNotificationTemplate("controllerOffline").color ??
 					"#AA4D24"
 			},
 			controllerChange: {
-				titleTemplate: parseBlocks(config.controllerChange.titleTemplate),
-				descriptionTemplate: parseBlocks(config.controllerChange.descriptionTemplate),
-				contentTemplate: parseBlocks(config.controllerChange.contentTemplate),
+				titleTemplate: config.controllerChange.titleTemplate,
+				descriptionTemplate: config.controllerChange.descriptionTemplate,
+				contentTemplate: config.controllerChange.contentTemplate ?? "",
 				color:
 					config.controllerChange.color ??
 					getDefaultDiscordNotificationTemplate("controllerChange").color ??
@@ -284,6 +207,11 @@
 	let selectedChannelId = findInitialChannelId();
 	let selectedTemplate = findInitialTemplate();
 	let editorState = buildEditorState(data.notificationChannels);
+	let activeField: EditorFieldKey = "descriptionTemplate";
+
+	let titleInput: HTMLInputElement | null = null;
+	let descriptionInput: HTMLTextAreaElement | null = null;
+	let contentInput: HTMLTextAreaElement | null = null;
 
 	$: selectedChannel =
 		data.notificationChannels.find((channel: NotificationChannel) => channel.id === selectedChannelId) ??
@@ -294,13 +222,6 @@
 		templateSections.find((section) => section.key === selectedTemplate) ?? templateSections[0];
 
 	$: activeTemplateState = selectedChannel ? editorState[selectedChannel.id]?.[selectedTemplate] : null;
-
-	function getTemplateState(
-		channelId: string,
-		templateType: DiscordNotificationTemplateType
-	): TemplateEditorState {
-		return editorState[channelId][templateType];
-	}
 
 	function setTemplateState(
 		channelId: string,
@@ -316,160 +237,93 @@
 		};
 	}
 
-	function setFieldBlocks(
-		channelId: string,
-		templateType: DiscordNotificationTemplateType,
-		field: EditorFieldKey,
-		blocks: TemplateBlock[]
-	) {
-		const current = getTemplateState(channelId, templateType);
-		setTemplateState(channelId, templateType, {
-			...current,
-			[field]: blocks
-		});
-	}
-
-	function setFieldColor(channelId: string, templateType: DiscordNotificationTemplateType, color: string) {
-		const current = getTemplateState(channelId, templateType);
-		setTemplateState(channelId, templateType, {
-			...current,
-			color
-		});
-	}
-
-	function updateTextBlock(
-		channelId: string,
-		templateType: DiscordNotificationTemplateType,
-		field: EditorFieldKey,
-		index: number,
-		value: string
-	) {
-		const blocks = [...getTemplateState(channelId, templateType)[field]];
-		const block = blocks[index];
-		if (!block || block.kind !== "text") {
+	function updateField(field: EditorFieldKey, value: string) {
+		if (!selectedChannel || !activeTemplateState) {
 			return;
 		}
 
-		blocks[index] = {
-			...block,
-			value
-		};
-		setFieldBlocks(channelId, templateType, field, blocks);
+		setTemplateState(selectedChannel.id, selectedTemplate, {
+			...activeTemplateState,
+			[field]: value
+		});
 	}
 
-	function removeBlock(
-		channelId: string,
-		templateType: DiscordNotificationTemplateType,
-		field: EditorFieldKey,
-		index: number
-	) {
-		const blocks = [...getTemplateState(channelId, templateType)[field]];
-		blocks.splice(index, 1);
-		setFieldBlocks(channelId, templateType, field, blocks);
-	}
-
-	function beginDrag(event: DragEvent, payload: DragPayload) {
-		event.dataTransfer?.setData("application/json", JSON.stringify(payload));
-		event.dataTransfer?.setData("text/plain", JSON.stringify(payload));
-		event.dataTransfer?.setData("text/x-vatsim-monitor-block", JSON.stringify(payload));
-		event.dataTransfer!.effectAllowed = payload.kind === "existing" ? "move" : "copy";
-	}
-
-	function readDragPayload(event: DragEvent): DragPayload | null {
-		const raw =
-			event.dataTransfer?.getData("application/json") ||
-			event.dataTransfer?.getData("text/x-vatsim-monitor-block") ||
-			event.dataTransfer?.getData("text/plain");
-
-		if (!raw) {
-			return null;
+	function updateColor(value: string) {
+		if (!selectedChannel || !activeTemplateState) {
+			return;
 		}
 
-		try {
-			return JSON.parse(raw) as DragPayload;
-		} catch {
-			return null;
-		}
+		setTemplateState(selectedChannel.id, selectedTemplate, {
+			...activeTemplateState,
+			color: value
+		});
 	}
 
-	function handleDrop(event: DragEvent, field: EditorFieldKey, targetIndex: number) {
+	function inputForField(field: EditorFieldKey): HTMLInputElement | HTMLTextAreaElement | null {
+		if (field === "titleTemplate") {
+			return titleInput;
+		}
+
+		if (field === "descriptionTemplate") {
+			return descriptionInput;
+		}
+
+		return contentInput;
+	}
+
+	function insertVariable(field: EditorFieldKey, variable: TemplateVariableKey) {
+		if (!selectedChannel || !activeTemplateState) {
+			return;
+		}
+
+		const input = inputForField(field);
+		const currentValue = activeTemplateState[field];
+
+		if (!input) {
+			updateField(field, `${currentValue}${variable}`);
+			return;
+		}
+
+		const start = input.selectionStart ?? currentValue.length;
+		const end = input.selectionEnd ?? currentValue.length;
+		const nextValue = `${currentValue.slice(0, start)}${variable}${currentValue.slice(end)}`;
+		updateField(field, nextValue);
+
+		requestAnimationFrame(() => {
+			input.focus();
+			const nextCaret = start + variable.length;
+			input.setSelectionRange(nextCaret, nextCaret);
+		});
+	}
+
+	function handleVariableDragStart(event: DragEvent, variable: TemplateVariableKey) {
+		event.dataTransfer?.setData("text/plain", variable);
+		event.dataTransfer!.effectAllowed = "copy";
+	}
+
+	function handleVariableDrop(event: DragEvent, field: EditorFieldKey) {
 		event.preventDefault();
-
-		if (!selectedChannel) {
+		const variable = event.dataTransfer?.getData("text/plain") as TemplateVariableKey;
+		if (!variable || !(variable in variableDescriptions)) {
 			return;
 		}
 
-		const payload = readDragPayload(event);
-		if (!payload) {
-			return;
-		}
-
-		const currentState = getTemplateState(selectedChannel.id, selectedTemplate);
-		let nextTargetIndex = targetIndex;
-		let targetBlocks = [...currentState[field]];
-
-		if (payload.kind === "existing" && payload.field) {
-			const sourceBlocks = [...currentState[payload.field]];
-			const [moved] = sourceBlocks.splice(payload.index ?? -1, 1);
-			if (!moved) {
-				return;
-			}
-
-			if (payload.field === field && (payload.index ?? 0) < nextTargetIndex) {
-				nextTargetIndex -= 1;
-			}
-
-			if (payload.field === field) {
-				targetBlocks = sourceBlocks;
-				targetBlocks.splice(nextTargetIndex, 0, moved);
-				setFieldBlocks(selectedChannel.id, selectedTemplate, field, targetBlocks);
-				return;
-			}
-
-			targetBlocks.splice(nextTargetIndex, 0, moved);
-			setTemplateState(selectedChannel.id, selectedTemplate, {
-				...currentState,
-				[payload.field]: sourceBlocks,
-				[field]: targetBlocks
-			});
-			return;
-		}
-
-		const newBlock =
-			payload.kind === "palette-variable"
-				? createBlock("variable", payload.value)
-				: createBlock("text", "Type here");
-
-		targetBlocks.splice(nextTargetIndex, 0, newBlock);
-		setFieldBlocks(selectedChannel.id, selectedTemplate, field, targetBlocks);
+		insertVariable(field, variable);
 	}
 
-	function renderPreview(templateType: DiscordNotificationTemplateType, field: EditorFieldKey): string {
-		if (!selectedChannel) {
+	function renderedPreview(field: EditorFieldKey): string {
+		if (!activeTemplateState) {
 			return "";
 		}
 
-		const rendered = serializeBlocks(getTemplateState(selectedChannel.id, templateType)[field]);
-		if (!rendered) {
+		const raw = activeTemplateState[field];
+		if (!raw) {
 			return field === "contentTemplate" ? "No plain-text content for this alert." : "Preview unavailable.";
 		}
 
-		return Object.entries(previewValues[templateType]).reduce((value, [token, replacement]) => {
+		return Object.entries(previewValues[selectedTemplate]).reduce((value, [token, replacement]) => {
 			return value.split(token).join(replacement);
-		}, rendered);
-	}
-
-	function serializedTemplate(
-		channelId: string,
-		templateType: DiscordNotificationTemplateType,
-		field: FieldKey
-	): string {
-		const state = getTemplateState(channelId, templateType);
-		if (field === "color") {
-			return state.color;
-		}
-
-		return serializeBlocks(state[field]);
+		}, raw);
 	}
 
 	function saveButtonLabel(type: DiscordNotificationTemplateType): string {
@@ -492,8 +346,8 @@
 <section class="dashboard-hero dashboard-hero--single">
 	<div class="panel dashboard-hero__main">
 		<div class="eyebrow">Alerts</div>
-		<h1>Build Discord notifications visually.</h1>
-		<p>Select a channel, pick the alert type, then drag variables and free-text blocks into the title, description, and content areas. The preview updates as you build.</p>
+		<h1>Build Discord notifications quickly.</h1>
+		<p>Select a channel, choose an alert type, then edit the preloaded title and description. Drag variables from the side panel into the field you are working on and watch the preview update immediately.</p>
 		<div class="monitor-strip">
 			<div class="monitor-strip__item">
 				<span>Channels</span>
@@ -594,13 +448,13 @@
 		<article class="dashboard-card dashboard-card--wide">
 			<div class="section-heading">
 				<div>
-					<h2>Step 3: Build the selected alert</h2>
+					<h2>Step 3: Edit the selected alert</h2>
 					<p class="muted alert-editor__subtitle">{activeTemplateSection.description}</p>
 				</div>
 			</div>
 
 			<form class="alerts-workspace" method="post">
-				<div class="alerts-workspace__main">
+				<div class="alerts-workspace__main alerts-workspace__main--compact">
 					<input type="hidden" name="id" value={selectedChannel.id} />
 					<input type="hidden" name="selectedTemplate" value={selectedTemplate} />
 					<input type="hidden" name="isActive" value={selectedChannel.isActive ? "false" : "true"} />
@@ -623,127 +477,74 @@
 						/>
 					</label>
 
-					<div class="block-palette">
-						<div class="block-palette__header">
-							<strong>Palette</strong>
-							<span>Drag free text or variables into the editor below.</span>
-						</div>
-						<div class="block-palette__items">
-							<div
-								class="block-palette__item block-palette__item--text"
-								draggable="true"
-								role="button"
-								tabindex="0"
-								on:dragstart={(event) => beginDrag(event, { kind: "palette-text" })}
-							>
-								<strong>Text block</strong>
-								<span>Add custom wording anywhere in the template.</span>
-							</div>
-							{#each activeTemplateSection.variables as variable}
-								<div
-									class="block-palette__item"
-									draggable="true"
-									role="button"
-									tabindex="0"
-									on:dragstart={(event) => beginDrag(event, { kind: "palette-variable", value: variable })}
-								>
-									<code>{variable}</code>
-									<span>{variableDescriptions[variable]}</span>
-								</div>
-							{/each}
-						</div>
+					<div class="compact-editor-grid">
+						<label class={`compact-editor-field ${activeField === "titleTemplate" ? "compact-editor-field--active" : ""}`}>
+							<span>Title</span>
+							<input
+								bind:this={titleInput}
+								value={activeTemplateState.titleTemplate}
+								on:focus={() => {
+									activeField = "titleTemplate";
+								}}
+								on:input={(event) => updateField("titleTemplate", event.currentTarget.value)}
+								on:dragover|preventDefault
+								on:drop={(event) => handleVariableDrop(event, "titleTemplate")}
+							/>
+						</label>
+
+						<label class={`compact-editor-field compact-editor-field--large ${activeField === "descriptionTemplate" ? "compact-editor-field--active" : ""}`}>
+							<span>Description</span>
+							<textarea
+								bind:this={descriptionInput}
+								rows="8"
+								value={activeTemplateState.descriptionTemplate}
+								on:focus={() => {
+									activeField = "descriptionTemplate";
+								}}
+								on:input={(event) => updateField("descriptionTemplate", event.currentTarget.value)}
+								on:dragover|preventDefault
+								on:drop={(event) => handleVariableDrop(event, "descriptionTemplate")}
+							></textarea>
+						</label>
+
+						<label class={`compact-editor-field ${activeField === "contentTemplate" ? "compact-editor-field--active" : ""}`}>
+							<span>Additional content</span>
+							<textarea
+								bind:this={contentInput}
+								rows="3"
+								value={activeTemplateState.contentTemplate}
+								on:focus={() => {
+									activeField = "contentTemplate";
+								}}
+								on:input={(event) => updateField("contentTemplate", event.currentTarget.value)}
+								on:dragover|preventDefault
+								on:drop={(event) => handleVariableDrop(event, "contentTemplate")}
+							></textarea>
+						</label>
+
+						<label class="compact-editor-field">
+							<span>Embed colour</span>
+							<input
+								placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
+								value={activeTemplateState.color}
+								on:input={(event) => updateColor(event.currentTarget.value)}
+							/>
+						</label>
 					</div>
 
-					{#each fieldOrder as field}
-						<section class="block-editor">
-							<div class="block-editor__header">
-								<h3>{editorFieldLabels[field]}</h3>
-								<p>{fieldPlaceholders[field]}</p>
-							</div>
-
-							<div class="block-canvas">
-								{#each activeTemplateState[field] as block, index}
-									<div
-										class="block-dropzone"
-										role="button"
-										tabindex="0"
-										on:dragover|preventDefault
-										on:drop={(event) => handleDrop(event, field, index)}
-									>
-										Drop here
-									</div>
-									<div
-										class={`block-item ${block.kind === "variable" ? "block-item--variable" : "block-item--text"}`}
-										draggable="true"
-										role="group"
-										on:dragstart={(event) => beginDrag(event, { kind: "existing", field, index })}
-									>
-										<div class="block-item__body">
-											{#if block.kind === "text"}
-												<textarea
-													rows={field === "titleTemplate" ? 2 : 3}
-													value={block.value}
-													on:input={(event) =>
-														updateTextBlock(selectedChannel.id, selectedTemplate, field, index, event.currentTarget.value)}
-												></textarea>
-											{:else}
-												<code>{block.value}</code>
-												<span>{variableDescriptions[block.value]}</span>
-											{/if}
-										</div>
-										<button
-											class="button button--secondary block-item__remove"
-											type="button"
-											on:click={() => removeBlock(selectedChannel.id, selectedTemplate, field, index)}
-										>
-											Remove
-										</button>
-									</div>
-								{/each}
-
-								<div
-									class="block-dropzone block-dropzone--end"
-									role="button"
-									tabindex="0"
-									on:dragover|preventDefault
-									on:drop={(event) => handleDrop(event, field, activeTemplateState[field].length)}
-								>
-									{activeTemplateState[field].length === 0 ? "Drop your first block here" : "Drop here to append"}
-								</div>
-							</div>
-						</section>
-					{/each}
-
-					<label>
-						<span>Embed colour</span>
-						<input
-							placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
-							value={activeTemplateState.color}
-							on:input={(event) => setFieldColor(selectedChannel.id, selectedTemplate, event.currentTarget.value)}
-						/>
-					</label>
-
 					{#each templateSections as section}
-						<input
-							type="hidden"
-							name={`${section.key}TitleTemplate`}
-							value={serializedTemplate(selectedChannel.id, section.key, "titleTemplate")}
-						/>
+						<input type="hidden" name={`${section.key}TitleTemplate`} value={editorState[selectedChannel.id][section.key].titleTemplate} />
 						<input
 							type="hidden"
 							name={`${section.key}DescriptionTemplate`}
-							value={serializedTemplate(selectedChannel.id, section.key, "descriptionTemplate")}
+							value={editorState[selectedChannel.id][section.key].descriptionTemplate}
 						/>
 						<input
 							type="hidden"
 							name={`${section.key}ContentTemplate`}
-							value={serializedTemplate(selectedChannel.id, section.key, "contentTemplate")}
+							value={editorState[selectedChannel.id][section.key].contentTemplate}
 						/>
-						<input
-							type="hidden"
-							name={`${section.key}Color`}
-							value={serializedTemplate(selectedChannel.id, section.key, "color")}
-						/>
+						<input type="hidden" name={`${section.key}Color`} value={editorState[selectedChannel.id][section.key].color} />
 					{/each}
 
 					<div class="button-row compact-row">
@@ -761,7 +562,21 @@
 
 				<aside class="alerts-workspace__sidebar">
 					<div class="template-detail">
-						<strong>Available variables</strong>
+						<strong>Variables</strong>
+						<p class="muted">Drag a variable into the field you are editing, or click it to insert it into the active field.</p>
+						<div class="token-board">
+							{#each activeTemplateSection.variables as variable}
+								<button
+									class="token-chip"
+									type="button"
+									draggable="true"
+									on:click={() => insertVariable(activeField, variable)}
+									on:dragstart={(event) => handleVariableDragStart(event, variable)}
+								>
+									<code>{variable}</code>
+								</button>
+							{/each}
+						</div>
 						<div class="template-variable-list">
 							{#each activeTemplateSection.variables as variable}
 								<div class="template-variable-row">
@@ -778,11 +593,11 @@
 						<div class="preview-card" style={`--preview-color: ${activeTemplateState.color || "#0C2746"}`}>
 							<div class="preview-card__header">
 								<span class="preview-card__label">{activeTemplateSection.title}</span>
-								<strong>{renderPreview(selectedTemplate, "titleTemplate")}</strong>
+								<strong>{renderedPreview("titleTemplate")}</strong>
 							</div>
-							<p>{renderPreview(selectedTemplate, "descriptionTemplate")}</p>
-							{#if renderPreview(selectedTemplate, "contentTemplate") !== "No plain-text content for this alert."}
-								<div class="preview-card__content">{renderPreview(selectedTemplate, "contentTemplate")}</div>
+							<p>{renderedPreview("descriptionTemplate")}</p>
+							{#if renderedPreview("contentTemplate") !== "No plain-text content for this alert."}
+								<div class="preview-card__content">{renderedPreview("contentTemplate")}</div>
 							{/if}
 						</div>
 					</div>
