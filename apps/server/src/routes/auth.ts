@@ -8,6 +8,21 @@ function readSessionId(req: Request): string {
 	return typeof header === "string" ? header : "";
 }
 
+function buildAuthRateLimitKey(req: Request): string {
+	const body = req.body && typeof req.body === "object" ? req.body : {};
+	const identifier =
+		typeof (body as any).identifier === "string"
+			? (body as any).identifier
+			: typeof (body as any).username === "string"
+				? (body as any).username
+				: typeof (body as any).email === "string"
+					? (body as any).email
+					: "";
+
+	const normalizedIdentifier = identifier.trim().toLowerCase();
+	return normalizedIdentifier.length > 0 ? `auth:${normalizedIdentifier}` : `ip:${req.ip}`;
+}
+
 export function createAuthRouter(vatsimOAuthEnabled: boolean, authService: AuthService): Router {
 	const router = Router();
 	const authLimiter = rateLimit({
@@ -15,6 +30,7 @@ export function createAuthRouter(vatsimOAuthEnabled: boolean, authService: AuthS
 		limit: 20,
 		standardHeaders: true,
 		legacyHeaders: false,
+		keyGenerator: buildAuthRateLimitKey,
 		message: {
 			message: "Too many authentication attempts. Please wait before trying again."
 		}

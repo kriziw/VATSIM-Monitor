@@ -73,6 +73,7 @@ export interface NotificationChannel {
 	type: NotificationChannelType;
 	displayName: string | null;
 	destination: string;
+	destinationMasked: string;
 	config: DiscordNotificationChannelConfig | null;
 	isActive: boolean;
 	createdAt: string;

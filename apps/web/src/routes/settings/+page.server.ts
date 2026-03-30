@@ -133,19 +133,19 @@ export const actions = {
 			throw redirect(302, "/login");
 		}
 
-		const form = await request.formData();
-		const id = String(form.get("id") || "");
-		const displayName = String(form.get("displayName") || "");
-		const destination = String(form.get("destination") || "");
-		const config = readDiscordConfig(form);
+	const form = await request.formData();
+	const id = String(form.get("id") || "");
+	const displayName = String(form.get("displayName") || "");
+	const destination = String(form.get("destination") || "").trim();
+	const config = readDiscordConfig(form);
 
-		try {
-			await updateNotificationChannel(sessionId, id, {
-				displayName,
-				destination,
-				config
-			});
-			return { success: true };
+	try {
+		await updateNotificationChannel(sessionId, id, {
+			displayName,
+			destination: destination.length > 0 ? destination : undefined,
+			config
+		});
+		return { success: true };
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "notificationChannels",

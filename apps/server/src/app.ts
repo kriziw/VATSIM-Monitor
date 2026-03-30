@@ -1,4 +1,3 @@
-import cors from "cors";
 import express from "express";
 import {
 	AuthStore,
@@ -49,7 +48,7 @@ export function createApp(config: AppConfig) {
 		topdownProviderState: "active"
 	});
 
-	app.use(cors());
+	app.set("trust proxy", config.trustProxy);
 	app.use(express.json());
 
 	app.get("/health", (_req, res) => {
