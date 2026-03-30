@@ -27,17 +27,10 @@ ENV NODE_ENV=production
 
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/apps/server/package.json ./apps/server/package.json
-COPY --from=build /app/apps/server/dist ./apps/server/dist
-COPY --from=build /app/packages/data/package.json ./packages/data/package.json
-COPY --from=build /app/packages/data/dist ./packages/data/dist
-COPY --from=build /app/packages/domain/package.json ./packages/domain/package.json
-COPY --from=build /app/packages/domain/dist ./packages/domain/dist
-COPY --from=build /app/packages/integrations/package.json ./packages/integrations/package.json
-COPY --from=build /app/packages/integrations/dist ./packages/integrations/dist
-COPY --from=build /app/packages/data/migrations ./packages/data/migrations
-COPY apps/server/docker-entrypoint.sh ./apps/server/docker-entrypoint.sh
-COPY apps/server/scripts ./apps/server/scripts
+COPY --from=build /app/apps/server ./apps/server
+COPY --from=build /app/packages/data ./packages/data
+COPY --from=build /app/packages/domain ./packages/domain
+COPY --from=build /app/packages/integrations ./packages/integrations
 
 WORKDIR /app/apps/server
 RUN chmod +x docker-entrypoint.sh
