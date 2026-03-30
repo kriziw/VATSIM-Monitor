@@ -20,6 +20,7 @@
 			{#if data.session}
 				<a href="/monitor">Monitor</a>
 				<a href="/settings">Settings</a>
+				<a href="/alerts">Alerts</a>
 				<span class="nav-user">{data.session.user.username}</span>
 				<a class="nav-cta" href="/logout">Sign out</a>
 			{:else}
