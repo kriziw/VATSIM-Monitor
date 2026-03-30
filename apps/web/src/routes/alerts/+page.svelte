@@ -259,6 +259,15 @@
 		});
 	}
 
+	function colorValue(): string {
+		const raw = activeTemplateState?.color?.trim();
+		if (!raw) {
+			return getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58";
+		}
+
+		return raw.startsWith("#") ? raw : `#${raw}`;
+	}
+
 	function inputForField(field: EditorFieldKey): HTMLInputElement | HTMLTextAreaElement | null {
 		if (field === "titleTemplate") {
 			return titleInput;
@@ -524,11 +533,20 @@
 
 						<label class="compact-editor-field">
 							<span>Embed colour</span>
-							<input
-								placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
-								value={activeTemplateState.color}
-								on:input={(event) => updateColor(event.currentTarget.value)}
-							/>
+							<div class="color-picker-row">
+								<input
+									class="color-picker-row__native"
+									type="color"
+									value={colorValue()}
+									on:input={(event) => updateColor(event.currentTarget.value.toUpperCase())}
+								/>
+								<input
+									class="color-picker-row__hex"
+									placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
+									value={activeTemplateState.color}
+									on:input={(event) => updateColor(event.currentTarget.value)}
+								/>
+							</div>
 						</label>
 					</div>
 
