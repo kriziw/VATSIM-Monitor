@@ -97,6 +97,8 @@ This repository now follows the same general release pattern as `kriziw/MindBuzz
 - Release Please maintains the next `0.x` release PR
 - published GitHub releases trigger Docker Hub image publishing for both `web` and `server`
 
+Release Please only creates a new release PR when `main` contains releasable commits since the last tag. In practice that means merges with prefixes like `fix:`, `feat:`, or `deps:`. A `docs:` or `chore:` merge alone will not produce a new release.
+
 The repository secrets expected by the release workflows are:
 
 - `RELEASE_PLEASE_TOKEN`
