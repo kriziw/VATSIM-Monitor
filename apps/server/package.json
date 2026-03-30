@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "dev": "tsx watch src/index.ts",
     "db:migrate": "tsx src/scripts/migrate.ts",
     "db:migrate:prod": "node scripts/migrate.mjs",
