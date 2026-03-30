@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.3.0...v0.3.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* harden auth and workflow security ([#28](https://github.com/kriziw/VATSIM-Monitor/issues/28)) ([3a4185d](https://github.com/kriziw/VATSIM-Monitor/commit/3a4185d438e7452918774ca1f1ba379d8b977ce6))
+
 ## [0.3.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.7...v0.3.0) (2026-03-30)
 
 
