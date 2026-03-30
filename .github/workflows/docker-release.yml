@@ -6,9 +6,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  DOCKER_PLATFORMS: |
-    linux/amd64
-    linux/arm64
+  DOCKER_PLATFORMS: linux/amd64
 
 jobs:
   build-and-push:
@@ -45,11 +43,6 @@ jobs:
       - name: Extract repository name (lowercase)
         shell: bash
         run: echo "REPO_NAME=$(basename '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: ${{ env.DOCKER_PLATFORMS }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
