@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.3](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.2...v0.2.3) (2026-03-30)
+
+
+### Bug Fixes
+
+* make server image migrations self-contained ([caf285d](https://github.com/kriziw/VATSIM-Monitor/commit/caf285d7e3b2f36b3a12ec19434ff463aa907d64))
+* make server image migrations self-contained ([ba04979](https://github.com/kriziw/VATSIM-Monitor/commit/ba04979824ea8f94fd1f2bf467b4a9d430545443))
+
 ## [0.2.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.1...v0.2.2) (2026-03-30)
 
 
