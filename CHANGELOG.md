@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.1.3...v0.2.0) (2026-03-30)
+
+
+### Features
+
+* overhaul monitoring web ui ([2a08cc8](https://github.com/kriziw/VATSIM-Monitor/commit/2a08cc8747cd375e72059d8736bdac3dd8a10ad3))
+* overhaul monitoring web ui ([80060f9](https://github.com/kriziw/VATSIM-Monitor/commit/80060f939e82682a669bd794ad4f9b6b771bb033))
+
 ## [0.1.3](https://github.com/kriziw/VATSIM-Monitor/compare/v0.1.2...v0.1.3) (2026-03-30)
 
 
