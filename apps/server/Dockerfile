@@ -37,6 +37,7 @@ COPY --from=build /app/packages/integrations/package.json ./packages/integration
 COPY --from=build /app/packages/integrations/dist ./packages/integrations/dist
 COPY --from=build /app/packages/data/migrations ./packages/data/migrations
 COPY apps/server/docker-entrypoint.sh ./apps/server/docker-entrypoint.sh
+COPY apps/server/scripts ./apps/server/scripts
 
 WORKDIR /app/apps/server
 RUN chmod +x docker-entrypoint.sh
