@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.5...v0.2.6) (2026-03-30)
+
+
+### Bug Fixes
+
+* align runtime entrypoints with compiled outputs ([#23](https://github.com/kriziw/VATSIM-Monitor/issues/23)) ([2b6cd54](https://github.com/kriziw/VATSIM-Monitor/commit/2b6cd54b6e15ec38e5b794e95f738559c428ca6e))
+
 ## [0.2.5](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.4...v0.2.5) (2026-03-30)
 
 
