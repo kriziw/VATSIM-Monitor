@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.1.1...v0.1.2) (2026-03-30)
+
+
+### Bug Fixes
+
+* pull published images from docker compose ([7c47e92](https://github.com/kriziw/VATSIM-Monitor/commit/7c47e92104cc81496b985e5a1065e9d10dbfd1f6))
+* pull published images from docker compose ([35d9ad2](https://github.com/kriziw/VATSIM-Monitor/commit/35d9ad28bd36a26f7798317ed9b40c723f039881))
+
 ## [0.1.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.1.0...v0.1.1) (2026-03-30)
 
 
