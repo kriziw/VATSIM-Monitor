@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.4.0...v0.4.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* harden monitor and channel handling ([#33](https://github.com/kriziw/VATSIM-Monitor/issues/33)) ([dee4776](https://github.com/kriziw/VATSIM-Monitor/commit/dee47762136fb6e3d132f1e5f3deb6e873eb5caa))
+
 ## [0.4.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.3.1...v0.4.0) (2026-03-30)
 
 
