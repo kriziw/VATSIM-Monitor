@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.0...v0.2.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* trust proxy origin headers in docker ([a06c393](https://github.com/kriziw/VATSIM-Monitor/commit/a06c393b847e8ec8aa86bd40d54e303c423e7688))
+* trust proxy origin headers in docker ([af270ef](https://github.com/kriziw/VATSIM-Monitor/commit/af270ef0cb724fed8b82d7968c394c5964a1cc81))
+
 ## [0.2.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.1.3...v0.2.0) (2026-03-30)
 
 
