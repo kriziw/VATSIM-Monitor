@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.6.0...v0.7.0) (2026-03-30)
+
+
+### Features
+
+* show version and build info in the app ([#41](https://github.com/kriziw/VATSIM-Monitor/issues/41)) ([f989270](https://github.com/kriziw/VATSIM-Monitor/commit/f98927005e6dd704709cd44e5f74857fd063ec04))
+
 ## [0.6.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.5.1...v0.6.0) (2026-03-30)
 
 
