@@ -39,6 +39,9 @@ These are read by `apps/server`.
 
 These are read by `apps/web`.
 
+- `ORIGIN`
+  Recommended local value: `http://localhost:3000`
+  Recommended deployed value: the exact public URL users open in the browser
 - `PRIVATE_API_BASE_URL`
   Recommended local value: `http://localhost:8080`
   Recommended deployed value: the internal or public base URL for the backend service
