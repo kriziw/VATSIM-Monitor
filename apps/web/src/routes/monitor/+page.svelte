@@ -55,8 +55,8 @@
 			</div>
 		</div>
 		<div class="button-row compact-row">
-			<a class="button button--primary" href="/dashboard">Open settings</a>
-			<a class="button button--secondary" href="/dashboard#watch-rules">Edit watch rules</a>
+			<a class="button button--primary" href="/settings">Open settings</a>
+			<a class="button button--secondary" href="/settings#watch-rules">Edit watch rules</a>
 		</div>
 	</div>
 </section>

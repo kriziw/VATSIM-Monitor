@@ -14,7 +14,7 @@
 		<nav class="nav-links" aria-label="Primary">
 			{#if data.session}
 				<a href="/monitor">Monitor</a>
-				<a href="/dashboard">Settings</a>
+				<a href="/settings">Settings</a>
 				<span class="nav-user">{data.session.user.username}</span>
 				<a class="nav-cta" href="/logout">Sign out</a>
 			{:else}
