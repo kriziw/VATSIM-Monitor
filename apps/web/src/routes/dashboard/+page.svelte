@@ -4,32 +4,30 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard | VATSIM Monitor</title>
+	<title>Settings | VATSIM Monitor</title>
 </svelte:head>
 
 <section class="dashboard-hero">
 	<div class="panel dashboard-hero__main">
-		<div class="eyebrow">Dashboard</div>
-		<h1>Monitor ATC availability and route the alerts that matter.</h1>
-		<p>
-			Track controller callsigns, check the live network state, and push staffing changes to your Discord channels from one focused workspace.
-		</p>
+		<div class="eyebrow">Settings</div>
+		<h1>Configure what this account watches and where alerts go.</h1>
+		<p>Use the settings page to define watch rules, keep Discord channels in sync, and prepare future notification customization in one place.</p>
 		<div class="summary-grid">
-			<div class="snapshot-card">
-				<span>Controllers online</span>
-				<strong>{data.monitoringStatus.currentOnlineCount}</strong>
-			</div>
 			<div class="snapshot-card">
 				<span>Watch rules</span>
 				<strong>{data.watchRules.length}</strong>
+			</div>
+			<div class="snapshot-card">
+				<span>Active rules</span>
+				<strong>{data.watchRules.filter((watchRule) => watchRule.isActive).length}</strong>
 			</div>
 			<div class="snapshot-card">
 				<span>Alert channels</span>
 				<strong>{data.notificationChannels.length}</strong>
 			</div>
 			<div class="snapshot-card">
-				<span>Recent events</span>
-				<strong>{data.recentEvents.length}</strong>
+				<span>Active channels</span>
+				<strong>{data.notificationChannels.filter((channel) => channel.isActive).length}</strong>
 			</div>
 		</div>
 	</div>
@@ -53,42 +51,7 @@
 </section>
 
 <section class="section dashboard-stack">
-	<article class="dashboard-card dashboard-card--wide">
-		<div class="section-heading">
-			<h2>Live monitoring</h2>
-			<span class="status-chip {data.monitoringStatus.lastError ? 'status-chip--warn' : 'status-chip--ok'}">
-				{data.monitoringStatus.state}
-			</span>
-		</div>
-
-		<div class="summary-grid">
-			<div class="metric">
-				<strong>Poll interval</strong>
-				<span>{Math.round(data.monitoringStatus.pollIntervalMs / 1000)} seconds</span>
-			</div>
-			<div class="metric">
-				<strong>Last success</strong>
-				<span>{data.monitoringStatus.lastSuccessAt ?? "No successful poll yet"}</span>
-			</div>
-			<div class="metric">
-				<strong>Last error</strong>
-				<span>{data.monitoringStatus.lastError ?? "None"}</span>
-			</div>
-			<div class="metric">
-				<strong>Last cycle</strong>
-				<span>
-					{#if data.monitoringStatus.lastCycle}
-						{data.monitoringStatus.lastCycle.newEvents} online, {data.monitoringStatus.lastCycle.offlineEvents} offline,
-						{data.monitoringStatus.lastCycle.sentNotifications} sent
-					{:else}
-						No cycle summary yet
-					{/if}
-				</span>
-			</div>
-		</div>
-	</article>
-
-	<article class="dashboard-card">
+	<article class="dashboard-card" id="watch-rules">
 		<div class="section-heading">
 			<h2>Watch rules</h2>
 		</div>
@@ -152,7 +115,7 @@
 		</form>
 	</article>
 
-	<article class="dashboard-card">
+	<article class="dashboard-card" id="alert-channels">
 		<div class="section-heading">
 			<h2>Alert channels</h2>
 		</div>
@@ -208,30 +171,11 @@
 		</form>
 	</article>
 
-	<article class="dashboard-card dashboard-card--wide">
+	<article class="dashboard-card" id="notification-customisation">
 		<div class="section-heading">
-			<h2>Recent controller activity</h2>
+			<h2>Notification customisation</h2>
 		</div>
-		<div class="card-list">
-			{#if data.recentEvents.length === 0}
-				<p class="empty-state">No controller events persisted yet.</p>
-			{:else}
-				{#each data.recentEvents as event}
-					<div class="stack-card">
-						<div class="stack-card__head">
-							<strong>{event.callsign}</strong>
-							<span class="status-chip {event.type === 'controller_online' ? 'status-chip--ok' : 'status-chip--muted'}">
-								{event.type === "controller_online" ? "Online" : "Offline"}
-							</span>
-						</div>
-						<div class="meta-row">
-							<span>CID {event.controllerCid}</span>
-							<span>{event.frequency || "Frequency pending"}</span>
-							<span>{event.occurredAt}</span>
-						</div>
-					</div>
-				{/each}
-			{/if}
-		</div>
+		<p>Discord message templates and per-channel formatting will live here once that feature is ready.</p>
+		<div class="empty-state">For now, alerts use the standard message format so the monitoring and delivery flow stays predictable.</div>
 	</article>
 </section>

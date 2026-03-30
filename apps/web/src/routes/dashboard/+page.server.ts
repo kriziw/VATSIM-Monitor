@@ -4,8 +4,6 @@ import {
 	deleteNotificationChannel,
 	deleteWatchRule,
 	fetchDashboardData,
-	fetchMonitoringStatus,
-	fetchRecentControllerEvents,
 	updateNotificationChannel,
 	updateWatchRule
 } from "$lib/server/backend";
@@ -22,15 +20,11 @@ export const load = (async ({ locals }) => {
 	}
 
 	const dashboardData = await fetchDashboardData(locals.session.session.id);
-	const monitoringStatus = await fetchMonitoringStatus();
-	const recentEvents = await fetchRecentControllerEvents(12);
 
 	return {
 		session: locals.session,
 		watchRules: dashboardData.watchRules,
-		notificationChannels: dashboardData.notificationChannels,
-		monitoringStatus,
-		recentEvents
+		notificationChannels: dashboardData.notificationChannels
 	};
 }) satisfies PageServerLoad;
 
