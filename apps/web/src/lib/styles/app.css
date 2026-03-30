@@ -198,6 +198,10 @@ textarea {
 	align-items: stretch;
 }
 
+.dashboard-hero--single {
+	grid-template-columns: minmax(0, 1fr);
+}
+
 .landing-copy h1,
 .auth-intro h1 {
 	font-size: clamp(1.8rem, 3.2vw, 2.6rem);
@@ -594,6 +598,48 @@ textarea {
 	margin-top: 16px;
 }
 
+.template-note p {
+	margin: 0;
+}
+
+.template-guide {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.template-section-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+}
+
+.template-card {
+	display: grid;
+	gap: 14px;
+	padding: 18px;
+	border-radius: 18px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.74);
+}
+
+.template-card__head {
+	display: grid;
+	gap: 6px;
+}
+
+.template-card__head h3 {
+	margin: 0;
+	font-size: 1rem;
+	color: var(--navy);
+}
+
+.template-card__head p {
+	margin: 0;
+	font-size: 0.94rem;
+}
+
 .mono {
 	font-family: "Consolas", "SFMono-Regular", "Courier New", monospace;
 	font-size: 0.88rem;
@@ -608,7 +654,9 @@ textarea {
 	.dashboard-stack,
 	.focus-list,
 	.summary-grid,
-	.snapshot-grid {
+	.snapshot-grid,
+	.template-guide,
+	.template-section-grid {
 		grid-template-columns: 1fr;
 	}
 

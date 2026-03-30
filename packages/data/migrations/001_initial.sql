@@ -91,7 +91,7 @@ CREATE TABLE controller_snapshots (
 
 CREATE TABLE controller_events (
   id CHAR(36) NOT NULL,
-  event_type ENUM('controller_online', 'controller_offline') NOT NULL,
+  event_type ENUM('controller_online', 'controller_offline', 'controller_change') NOT NULL,
   source VARCHAR(32) NOT NULL,
   controller_cid BIGINT NOT NULL,
   callsign VARCHAR(32) NOT NULL,
