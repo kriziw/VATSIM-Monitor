@@ -7,7 +7,7 @@
 	<title>Settings | VATSIM Monitor</title>
 </svelte:head>
 
-<section class="dashboard-hero">
+<section class="dashboard-hero dashboard-hero--single">
 	<div class="panel dashboard-hero__main">
 		<div class="eyebrow">Settings</div>
 		<h1>Configure what this account watches and where alerts go.</h1>
@@ -30,23 +30,22 @@
 				<strong>{data.notificationChannels.filter((channel) => channel.isActive).length}</strong>
 			</div>
 		</div>
-	</div>
-
-	<div class="panel account-panel">
-		<div class="section-heading">
-			<h2>Account</h2>
-		</div>
-		<div class="account-list">
-			<div>
-				<span>Signed in as</span>
-				<strong>{data.session.user.username}</strong>
+		<div class="settings-toolbar">
+			<div class="account-chip">
+				<div>
+					<span>Signed in as</span>
+					<strong>{data.session.user.username}</strong>
+				</div>
+				<div>
+					<span>Email</span>
+					<strong>{data.session.user.email ?? "Not set"}</strong>
+				</div>
 			</div>
-			<div>
-				<span>Email</span>
-				<strong>{data.session.user.email ?? "Not set"}</strong>
+			<div class="button-row settings-toolbar__actions">
+				<a class="button button--secondary" href="/alerts">Open Alerts</a>
+				<a class="button button--secondary" href="/logout">Sign out</a>
 			</div>
 		</div>
-		<a class="button button--secondary" href="/logout">Sign out</a>
 	</div>
 </section>
 

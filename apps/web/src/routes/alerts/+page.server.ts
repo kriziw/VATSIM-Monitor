@@ -35,6 +35,15 @@ function readDiscordConfig(form: FormData): Partial<DiscordNotificationChannelCo
 	};
 }
 
+function readSelectedTemplate(form: FormData): DiscordNotificationTemplateType {
+	const value = String(form.get("selectedTemplate") || "");
+	if (value === "controllerOffline" || value === "controllerChange") {
+		return value;
+	}
+
+	return "controllerOnline";
+}
+
 export const load = (async ({ locals }) => {
 	if (!locals.session) {
 		throw redirect(302, "/login");
@@ -87,6 +96,7 @@ export const actions = {
 		const displayName = String(form.get("displayName") || "");
 		const destination = String(form.get("destination") || "").trim();
 		const config = readDiscordConfig(form);
+		const selectedTemplate = readSelectedTemplate(form);
 
 		try {
 			await updateNotificationChannel(sessionId, id, {
@@ -99,6 +109,7 @@ export const actions = {
 			return fail(error?.status || 500, {
 				section: "notificationChannels",
 				channelId: id,
+				selectedTemplate,
 				message: error?.body?.message ?? error?.message ?? "Unable to save notification settings.",
 				displayName,
 				destination,
@@ -115,6 +126,7 @@ export const actions = {
 		const form = await request.formData();
 		const id = String(form.get("id") || "");
 		const isActive = form.get("isActive") === "true";
+		const selectedTemplate = readSelectedTemplate(form);
 
 		try {
 			await updateNotificationChannel(sessionId, id, { isActive });
@@ -122,6 +134,8 @@ export const actions = {
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "notificationChannels",
+				channelId: id,
+				selectedTemplate,
 				message: error?.body?.message ?? error?.message ?? "Unable to update notification channel."
 			});
 		}
@@ -134,6 +148,7 @@ export const actions = {
 
 		const form = await request.formData();
 		const id = String(form.get("id") || "");
+		const selectedTemplate = readSelectedTemplate(form);
 
 		try {
 			await deleteNotificationChannel(sessionId, id);
@@ -141,6 +156,8 @@ export const actions = {
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "notificationChannels",
+				channelId: id,
+				selectedTemplate,
 				message: error?.body?.message ?? error?.message ?? "Unable to delete notification channel."
 			});
 		}
