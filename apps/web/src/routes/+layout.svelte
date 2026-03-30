@@ -8,17 +8,20 @@
 	<header class="topbar">
 		<a class="brand" href="/">
 			<span class="brand__name">VATSIM Monitor</span>
-			<span class="brand__tag">Local-first controller monitoring</span>
+			<span class="brand__tag">ATC availability, watchlists, and alerts</span>
 		</a>
 
 		<nav class="nav-links" aria-label="Primary">
-			<a href="/">Overview</a>
-			<a href="/dashboard">Dashboard</a>
+			<a href="/">Home</a>
 			{#if data.session}
-				<span>Signed in as {data.session.user.username}</span>
-				<a href="/logout">Sign out</a>
+				<a href="/dashboard">Dashboard</a>
+			{/if}
+			{#if data.session}
+				<span class="nav-user">{data.session.user.username}</span>
+				<a class="nav-cta" href="/logout">Sign out</a>
 			{:else}
-				<a href="/login">Sign in</a>
+				<a href="/login#signin">Sign in</a>
+				<a class="nav-cta" href="/login#register">Register</a>
 			{/if}
 		</nav>
 	</header>
