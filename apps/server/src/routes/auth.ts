@@ -1,4 +1,5 @@
 import { Router, type Request } from "express";
+import rateLimit from "express-rate-limit";
 import type { AuthService } from "../services/auth-service.js";
 import { AuthError } from "../services/auth-service.js";
 
@@ -9,6 +10,15 @@ function readSessionId(req: Request): string {
 
 export function createAuthRouter(vatsimOAuthEnabled: boolean, authService: AuthService): Router {
 	const router = Router();
+	const authLimiter = rateLimit({
+		windowMs: 15 * 60 * 1000,
+		limit: 20,
+		standardHeaders: true,
+		legacyHeaders: false,
+		message: {
+			message: "Too many authentication attempts. Please wait before trying again."
+		}
+	});
 
 	router.get("/providers", (_req, res) => {
 		res.json({
@@ -23,7 +33,7 @@ export function createAuthRouter(vatsimOAuthEnabled: boolean, authService: AuthS
 		});
 	});
 
-	router.post("/register", async (req, res) => {
+	router.post("/register", authLimiter, async (req, res) => {
 		try {
 			const result = await authService.register({
 				username: typeof req.body?.username === "string" ? req.body.username : "",
@@ -42,7 +52,7 @@ export function createAuthRouter(vatsimOAuthEnabled: boolean, authService: AuthS
 		}
 	});
 
-	router.post("/login", async (req, res) => {
+	router.post("/login", authLimiter, async (req, res) => {
 		try {
 			const result = await authService.login({
 				identifier: typeof req.body?.identifier === "string" ? req.body.identifier : "",

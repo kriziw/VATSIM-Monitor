@@ -32,6 +32,34 @@ function normalizeEmail(email: string | null): string | null {
 	return trimmed.length > 0 ? trimmed : null;
 }
 
+function isValidEmailAddress(email: string): boolean {
+	if (email.length > 254 || email.includes(" ")) {
+		return false;
+	}
+
+	const atIndex = email.indexOf("@");
+	if (atIndex <= 0 || atIndex !== email.lastIndexOf("@") || atIndex === email.length - 1) {
+		return false;
+	}
+
+	const localPart = email.slice(0, atIndex);
+	const domain = email.slice(atIndex + 1);
+	if (localPart.length === 0 || domain.length < 3) {
+		return false;
+	}
+
+	if (domain.startsWith(".") || domain.endsWith(".")) {
+		return false;
+	}
+
+	const domainParts = domain.split(".");
+	if (domainParts.length < 2) {
+		return false;
+	}
+
+	return domainParts.every((part) => part.length > 0);
+}
+
 function hashPassword(password: string, salt: string): string {
 	return scryptSync(password, salt, 64).toString("hex");
 }
@@ -76,7 +104,7 @@ export class AuthService {
 			throw new AuthError("Username may only contain letters, numbers, dots, underscores, and hyphens.", 400);
 		}
 
-		if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+		if (email && !isValidEmailAddress(email)) {
 			throw new AuthError("Email address is not valid.", 400);
 		}
 
