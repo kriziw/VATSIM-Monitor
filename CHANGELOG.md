@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.5.1...v0.6.0) (2026-03-30)
+
+
+### Features
+
+* move discord alert templates to a dedicated page ([#39](https://github.com/kriziw/VATSIM-Monitor/issues/39)) ([3d0a56c](https://github.com/kriziw/VATSIM-Monitor/commit/3d0a56ce359c3d84ea72aeefab223b52ec524558))
+
 ## [0.5.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.5.0...v0.5.1) (2026-03-30)
 
 
