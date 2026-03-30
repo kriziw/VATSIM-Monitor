@@ -35,5 +35,14 @@ jobs:
       - name: Validate Docker Compose
         run: docker compose config
 
-      - name: Build Docker images
-        run: docker compose build server web
+      - name: Build server image
+        run: docker build -f apps/server/Dockerfile -t vatsim-monitor-server:ci .
+
+      - name: Verify server image entrypoint
+        run: docker run --rm --entrypoint sh vatsim-monitor-server:ci -c "test -f /app/apps/server/dist/index.js"
+
+      - name: Build web image
+        run: docker build -f apps/web/Dockerfile -t vatsim-monitor-web:ci .
+
+      - name: Verify web image entrypoint
+        run: docker run --rm --entrypoint sh vatsim-monitor-web:ci -c "test -f /app/apps/web/build/index.js"
