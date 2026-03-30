@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.8.0...v0.9.0) (2026-03-30)
+
+
+### Features
+
+* refine the discord alert editor layout ([#45](https://github.com/kriziw/VATSIM-Monitor/issues/45)) ([5c0d969](https://github.com/kriziw/VATSIM-Monitor/commit/5c0d96937697e901bb7480ef46f5c9b9c8c415d3))
+
 ## [0.8.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.7.0...v0.8.0) (2026-03-30)
 
 
