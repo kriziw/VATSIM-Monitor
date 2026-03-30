@@ -149,6 +149,18 @@ textarea {
 	border: 1px solid var(--line);
 }
 
+.build-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 14px;
+	margin-top: 28px;
+	padding: 14px 4px 8px;
+	color: var(--muted);
+	font-size: 0.82rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
 .panel {
 	display: grid;
 	background: var(--surface);
@@ -772,6 +784,11 @@ textarea {
 	.topbar {
 		flex-direction: column;
 		align-items: flex-start;
+	}
+
+	.build-footer {
+		justify-content: flex-start;
+		flex-wrap: wrap;
 	}
 
 	.brand__lockup {

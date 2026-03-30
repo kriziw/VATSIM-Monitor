@@ -1,5 +1,8 @@
 FROM node:20-alpine AS build
 
+ARG APP_VERSION=dev
+ARG BUILD_NUMBER=local
+
 WORKDIR /app
 
 COPY package.json package-lock.json tsconfig.base.json ./
@@ -23,6 +26,10 @@ FROM node:20-alpine AS runtime
 
 WORKDIR /app
 ENV NODE_ENV=production
+ARG APP_VERSION=dev
+ARG BUILD_NUMBER=local
+ENV APP_VERSION=${APP_VERSION}
+ENV BUILD_NUMBER=${BUILD_NUMBER}
 
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
