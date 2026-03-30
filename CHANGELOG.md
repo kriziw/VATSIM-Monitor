@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.4...v0.2.5) (2026-03-30)
+
+
+### Bug Fixes
+
+* verify docker image entrypoints ([#21](https://github.com/kriziw/VATSIM-Monitor/issues/21)) ([e6a01a3](https://github.com/kriziw/VATSIM-Monitor/commit/e6a01a344292a18bf90aeae21da8627e25a6e16d))
+
 ## [0.2.4](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.3...v0.2.4) (2026-03-30)
 
 
