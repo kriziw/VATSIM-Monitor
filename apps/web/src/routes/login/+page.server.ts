@@ -17,7 +17,7 @@ function setSessionCookie(cookies: Cookies, sessionId: string, secure: boolean) 
 
 export const load = (async ({ locals }) => {
 	if (locals.session) {
-		throw redirect(302, "/dashboard");
+		throw redirect(302, "/settings");
 	}
 
 	return {};
@@ -50,7 +50,7 @@ export const actions = {
 		}
 
 		setSessionCookie(cookies, sessionId, url.protocol === "https:");
-		throw redirect(302, "/dashboard");
+			throw redirect(302, "/settings");
 	},
 	register: async ({ request, cookies, url }) => {
 		const form = await request.formData();
@@ -85,6 +85,6 @@ export const actions = {
 		}
 
 		setSessionCookie(cookies, sessionId, url.protocol === "https:");
-		throw redirect(302, "/dashboard");
+			throw redirect(302, "/settings");
 	}
 } satisfies Actions;

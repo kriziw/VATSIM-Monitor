@@ -6,20 +6,19 @@
 
 <div class="page-shell">
 	<header class="topbar">
-		<a class="brand" href="/">
+		<a class="brand" href={data.session ? "/monitor" : "/"}>
 			<span class="brand__name">VATSIM Monitor</span>
 			<span class="brand__tag">ATC availability, watchlists, and alerts</span>
 		</a>
 
 		<nav class="nav-links" aria-label="Primary">
-			<a href="/">Home</a>
 			{#if data.session}
-				<a href="/dashboard">Dashboard</a>
-			{/if}
-			{#if data.session}
+				<a href="/monitor">Monitor</a>
+				<a href="/settings">Settings</a>
 				<span class="nav-user">{data.session.user.username}</span>
 				<a class="nav-cta" href="/logout">Sign out</a>
 			{:else}
+				<a href="/">Home</a>
 				<a href="/login#signin">Sign in</a>
 				<a class="nav-cta" href="/login#register">Register</a>
 			{/if}
