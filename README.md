@@ -59,7 +59,6 @@ This scaffold intentionally establishes structure first. It includes:
 It does not yet include:
 
 - implemented VATSIM linking
-- UK top-down resolution in the new backend
 - web push delivery in the new backend
 - richer notification history and retry tooling
 
