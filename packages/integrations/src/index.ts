@@ -13,8 +13,20 @@ export interface TopdownResolver {
 	resolveCoveredCallsigns(callsign: string): Promise<string[]>;
 }
 
+export interface DiscordWebhookEmbed {
+	title?: string;
+	description?: string;
+	color?: number;
+	timestamp?: string;
+}
+
+export interface DiscordWebhookPayload {
+	content: string | null;
+	embeds?: DiscordWebhookEmbed[];
+}
+
 export interface DiscordNotifier {
-	sendWebhook(destination: string, title: string, body: string): Promise<void>;
+	sendWebhook(destination: string, payload: DiscordWebhookPayload): Promise<void>;
 }
 
 export interface TopdownController {
@@ -166,22 +178,13 @@ export class UkTopdownResolver implements TopdownResolver {
 }
 
 export class DiscordWebhookNotifier implements DiscordNotifier {
-	public async sendWebhook(destination: string, title: string, body: string): Promise<void> {
+	public async sendWebhook(destination: string, payload: DiscordWebhookPayload): Promise<void> {
 		const response = await fetch(destination, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify({
-				content: null,
-				embeds: [
-					{
-						title,
-						description: body,
-						timestamp: new Date().toISOString()
-					}
-				]
-			})
+			body: JSON.stringify(payload)
 		});
 
 		if (!response.ok) {

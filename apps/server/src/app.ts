@@ -69,7 +69,7 @@ export function createApp(config: AppConfig) {
 	});
 
 	app.use("/api/v1/auth", createAuthRouter(config.vatsimOAuthEnabled, authService));
-	app.use("/api/v1", createAccountRouter(authService, accountService));
+	app.use("/api/v1", createAccountRouter(authService, accountService, monitoringService));
 	app.use("/api/v1/monitoring", createMonitoringRouter(monitoringService));
 	app.use("/api/v1/topdown", createTopdownRouter(topdownResolver));
 

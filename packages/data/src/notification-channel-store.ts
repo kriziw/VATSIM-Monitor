@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { Pool, RowDataPacket } from "mysql2/promise";
-import type { NotificationChannel, NotificationChannelType } from "@vatsim-monitor/domain";
+import {
+	getDefaultDiscordNotificationConfig,
+	type DiscordNotificationChannelConfig,
+	type NotificationChannel,
+	type NotificationChannelType
+} from "@vatsim-monitor/domain";
 
 interface NotificationChannelRow extends RowDataPacket {
 	id: string;
@@ -8,8 +13,41 @@ interface NotificationChannelRow extends RowDataPacket {
 	type: NotificationChannelType;
 	display_name: string | null;
 	destination: string;
+	config_json: unknown;
 	is_active: number;
 	created_at: Date;
+}
+
+function parseDiscordConfig(raw: unknown): DiscordNotificationChannelConfig {
+	const defaults = getDefaultDiscordNotificationConfig();
+	let parsed: unknown = {};
+
+	try {
+		parsed = typeof raw === "string" ? JSON.parse(raw) : raw && typeof raw === "object" ? raw : {};
+	} catch {
+		parsed = {};
+	}
+
+	const config = parsed as Partial<DiscordNotificationChannelConfig>;
+
+	return {
+		titleTemplate:
+			typeof config.titleTemplate === "string" && config.titleTemplate.trim().length > 0
+				? config.titleTemplate
+				: defaults.titleTemplate,
+		descriptionTemplate:
+			typeof config.descriptionTemplate === "string" && config.descriptionTemplate.trim().length > 0
+				? config.descriptionTemplate
+				: defaults.descriptionTemplate,
+		contentTemplate:
+			typeof config.contentTemplate === "string" && config.contentTemplate.trim().length > 0
+				? config.contentTemplate
+				: null,
+		color:
+			typeof config.color === "string" && config.color.trim().length > 0
+				? config.color.toUpperCase()
+				: null
+	};
 }
 
 function mapNotificationChannel(row: NotificationChannelRow): NotificationChannel {
@@ -19,6 +57,7 @@ function mapNotificationChannel(row: NotificationChannelRow): NotificationChanne
 		type: row.type,
 		displayName: row.display_name,
 		destination: row.destination,
+		config: row.type === "discord_webhook" ? parseDiscordConfig(row.config_json) : null,
 		isActive: row.is_active === 1,
 		createdAt: row.created_at.toISOString()
 	};
@@ -29,12 +68,15 @@ export interface CreateNotificationChannelInput {
 	type: NotificationChannelType;
 	displayName: string | null;
 	destination: string;
+	config?: DiscordNotificationChannelConfig | null;
 }
 
 export interface UpdateNotificationChannelInput {
 	id: string;
 	userId: string;
 	displayName?: string | null;
+	destination?: string;
+	config?: DiscordNotificationChannelConfig | null;
 	isActive?: boolean;
 }
 
@@ -43,7 +85,7 @@ export class NotificationChannelStore {
 
 	public async listForUser(userId: string): Promise<NotificationChannel[]> {
 		const [rows] = await this.pool.execute<NotificationChannelRow[]>(
-			`SELECT id, user_id, type, display_name, destination, is_active, created_at
+			`SELECT id, user_id, type, display_name, destination, config_json, is_active, created_at
 			 FROM notification_channels
 			 WHERE user_id = ?
 			 ORDER BY created_at DESC, type ASC`,
@@ -56,9 +98,16 @@ export class NotificationChannelStore {
 	public async create(input: CreateNotificationChannelInput): Promise<NotificationChannel> {
 		const id = randomUUID();
 		await this.pool.execute(
-			`INSERT INTO notification_channels (id, user_id, type, display_name, destination, is_active)
-			 VALUES (?, ?, ?, ?, ?, TRUE)`,
-			[id, input.userId, input.type, input.displayName, input.destination]
+			`INSERT INTO notification_channels (id, user_id, type, display_name, destination, config_json, is_active)
+			 VALUES (?, ?, ?, ?, ?, ?, TRUE)`,
+			[
+				id,
+				input.userId,
+				input.type,
+				input.displayName,
+				input.destination,
+				input.config ? JSON.stringify(input.config) : null
+			]
 		);
 
 		const created = await this.getById(id, input.userId);
@@ -71,7 +120,7 @@ export class NotificationChannelStore {
 
 	public async getById(id: string, userId: string): Promise<NotificationChannel | null> {
 		const [rows] = await this.pool.execute<NotificationChannelRow[]>(
-			`SELECT id, user_id, type, display_name, destination, is_active, created_at
+			`SELECT id, user_id, type, display_name, destination, config_json, is_active, created_at
 			 FROM notification_channels
 			 WHERE id = ? AND user_id = ?
 			 LIMIT 1`,
@@ -92,6 +141,16 @@ export class NotificationChannelStore {
 		if (Object.prototype.hasOwnProperty.call(input, "displayName")) {
 			updates.push("display_name = ?");
 			values.push(input.displayName ?? null);
+		}
+
+		if (typeof input.destination === "string") {
+			updates.push("destination = ?");
+			values.push(input.destination);
+		}
+
+		if (Object.prototype.hasOwnProperty.call(input, "config")) {
+			updates.push("config_json = ?");
+			values.push(input.config ? JSON.stringify(input.config) : null);
 		}
 
 		if (typeof input.isActive === "boolean") {

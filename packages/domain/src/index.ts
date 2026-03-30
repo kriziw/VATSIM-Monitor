@@ -4,6 +4,33 @@ export type NotificationChannelType = "discord_webhook" | "web_push";
 export type ControllerEventType = "controller_offline" | "controller_online";
 export type MonitorProviderState = "active" | "pending" | "stopped";
 
+export interface DiscordNotificationChannelConfig {
+	titleTemplate: string;
+	descriptionTemplate: string;
+	contentTemplate: string | null;
+	color: string | null;
+}
+
+export const DISCORD_TEMPLATE_VARIABLES = [
+	"{{callsign}}",
+	"{{frequency}}",
+	"{{controllerName}}",
+	"{{controllerCid}}",
+	"{{eventType}}",
+	"{{eventLabel}}",
+	"{{statusLabel}}"
+] as const;
+
+export function getDefaultDiscordNotificationConfig(): DiscordNotificationChannelConfig {
+	return {
+		titleTemplate: "Controller {{eventLabel}}",
+		descriptionTemplate:
+			"**{{controllerName}}** ({{controllerCid}}) {{statusLabel}} as **{{callsign}}** on **{{frequency}}**.",
+		contentTemplate: null,
+		color: null
+	};
+}
+
 export interface User {
 	id: string;
 	username: string;
@@ -46,6 +73,7 @@ export interface NotificationChannel {
 	type: NotificationChannelType;
 	displayName: string | null;
 	destination: string;
+	config: DiscordNotificationChannelConfig | null;
 	isActive: boolean;
 	createdAt: string;
 }
@@ -91,4 +119,26 @@ export interface MonitorStatus {
 		vatsim: MonitorProviderState;
 		ukTopdown: MonitorProviderState;
 	};
+}
+
+export interface MonitorController {
+	cid: number;
+	callsign: string;
+	frequency: string;
+	name: string;
+}
+
+export interface MonitorRuleMatch {
+	watchRuleId: string;
+	pattern: string;
+	matchType: "direct" | "topdown";
+}
+
+export interface WatchedMonitorController extends MonitorController {
+	matchedRules: MonitorRuleMatch[];
+}
+
+export interface MonitorSnapshot {
+	watchedControllers: WatchedMonitorController[];
+	otherControllers: MonitorController[];
 }

@@ -7,8 +7,13 @@
 <div class="page-shell">
 	<header class="topbar">
 		<a class="brand" href={data.session ? "/monitor" : "/"}>
-			<span class="brand__name">VATSIM Monitor</span>
-			<span class="brand__tag">ATC availability, watchlists, and alerts</span>
+			<span class="brand__lockup">
+				<img alt="VATSIM Monitor logo" class="brand__mark" src="/brand/monitor-mark.svg" />
+				<span class="brand__copy">
+					<span class="brand__name">VATSIM Monitor</span>
+					<span class="brand__tag">ATC availability, watchlists, and alerts</span>
+				</span>
+			</span>
 		</a>
 
 		<nav class="nav-links" aria-label="Primary">

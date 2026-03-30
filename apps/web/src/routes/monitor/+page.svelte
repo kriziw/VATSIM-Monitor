@@ -1,5 +1,27 @@
 <script lang="ts">
+	import { invalidateAll } from "$app/navigation";
+	import { onMount } from "svelte";
+
 	export let data;
+
+	let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+	$: watchedControllers = data.monitorSnapshot.watchedControllers;
+	$: otherControllers = data.monitorSnapshot.otherControllers;
+	$: pollIntervalMs = data.monitoringStatus?.pollIntervalMs ?? 15000;
+	$: activeWatchRuleCount = data.dashboardData?.watchRules.filter((watchRule) => watchRule.isActive).length ?? 0;
+
+	onMount(() => {
+		refreshTimer = setInterval(() => {
+			void invalidateAll();
+		}, pollIntervalMs);
+
+		return () => {
+			if (refreshTimer) {
+				clearInterval(refreshTimer);
+			}
+		};
+	});
 </script>
 
 <svelte:head>
@@ -25,8 +47,8 @@
 					<strong>{Math.round(data.monitoringStatus.pollIntervalMs / 1000)}s</strong>
 				</div>
 				<div class="snapshot-card">
-					<span>Monitoring</span>
-					<strong>{data.monitoringStatus.lastError ? "Attention" : "Healthy"}</strong>
+					<span>Watched online</span>
+					<strong>{watchedControllers.length}</strong>
 				</div>
 				<div class="snapshot-card">
 					<span>Last success</span>
@@ -46,12 +68,12 @@
 				<strong>{data.session.user.username}</strong>
 			</div>
 			<div>
-				<span>Watch rules</span>
-				<strong>{data.dashboardData?.watchRules.length ?? 0}</strong>
+				<span>Active watch rules</span>
+				<strong>{activeWatchRuleCount}</strong>
 			</div>
 			<div>
-				<span>Alert channels</span>
-				<strong>{data.dashboardData?.notificationChannels.length ?? 0}</strong>
+				<span>Auto refresh</span>
+				<strong>{Math.round(pollIntervalMs / 1000)}s</strong>
 			</div>
 		</div>
 		<div class="button-row compact-row">
@@ -62,6 +84,44 @@
 </section>
 
 <section class="section dashboard-stack">
+	<article class="dashboard-card dashboard-card--wide" id="watched-controllers">
+		<div class="section-heading">
+			<h2>Watched controllers online</h2>
+			<span class="status-chip {watchedControllers.length > 0 ? 'status-chip--ok' : 'status-chip--muted'}">
+				{watchedControllers.length > 0 ? `${watchedControllers.length} matched` : "No matches"}
+			</span>
+		</div>
+		<div class="card-list">
+			{#if activeWatchRuleCount === 0}
+				<p class="empty-state">You do not have any active watch rules yet. Add one in Settings and the monitor will start prioritising matching controllers automatically.</p>
+			{:else if watchedControllers.length === 0}
+				<p class="empty-state">No currently online controllers match your active watch rules yet. Keep this page open and it will refresh automatically as the network changes.</p>
+			{:else}
+				{#each watchedControllers as controller}
+					<div class="stack-card">
+						<div class="stack-card__head">
+							<strong>{controller.callsign}</strong>
+							<span class="status-chip status-chip--ok">Watched</span>
+						</div>
+						<div class="meta-row">
+							<span>CID {controller.cid}</span>
+							<span>{controller.frequency || "Frequency pending"}</span>
+							<span>{controller.name || "Name unavailable"}</span>
+						</div>
+						<div class="tag-row">
+							{#each controller.matchedRules as match}
+								<span class="rule-tag">
+									{match.pattern}
+									{match.matchType === "topdown" ? " via top-down" : ""}
+								</span>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			{/if}
+		</div>
+	</article>
+
 	<article class="dashboard-card dashboard-card--wide" id="monitor-status">
 		<div class="section-heading">
 			<h2>Monitoring status</h2>
@@ -95,7 +155,7 @@
 				</div>
 				<div class="metric">
 					<strong>Focus</strong>
-					<span>Use settings to change watch rules and alert routing.</span>
+					<span>This page refreshes automatically so watched positions stay current.</span>
 				</div>
 			</div>
 		{:else}
@@ -103,9 +163,35 @@
 		{/if}
 	</article>
 
+	<article class="dashboard-card dashboard-card--wide" id="other-controllers">
+		<div class="section-heading">
+			<h2>Other controllers online</h2>
+		</div>
+		<div class="card-list">
+			{#if otherControllers.length === 0}
+				<p class="empty-state">No additional controllers are currently online.</p>
+			{:else}
+				{#each otherControllers.slice(0, 12) as controller}
+					<div class="stack-card">
+						<div class="stack-card__head">
+							<strong>{controller.callsign}</strong>
+							<span class="status-chip status-chip--muted">Network</span>
+						</div>
+						<div class="meta-row">
+							<span>CID {controller.cid}</span>
+							<span>{controller.frequency || "Frequency pending"}</span>
+							<span>{controller.name || "Name unavailable"}</span>
+						</div>
+					</div>
+				{/each}
+			{/if}
+		</div>
+	</article>
+
 	<article class="dashboard-card dashboard-card--wide" id="recent-activity">
 		<div class="section-heading">
 			<h2>Recent controller activity</h2>
+			<span class="status-chip status-chip--muted">Auto-refreshing</span>
 		</div>
 		<div class="card-list">
 			{#if data.recentEvents.length === 0}

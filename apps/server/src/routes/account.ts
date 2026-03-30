@@ -1,6 +1,8 @@
 import { Router, type Request, type Response } from "express";
+import type { DiscordNotificationChannelConfig } from "@vatsim-monitor/domain";
 import type { AuthService } from "../services/auth-service.js";
 import { AccountError, AccountService } from "../services/account-service.js";
+import type { MonitoringService } from "../services/monitoring-service.js";
 
 async function requireSession(req: Request, res: Response, authService: AuthService) {
 	const sessionId = req.header("x-session-id") || "";
@@ -14,7 +16,19 @@ async function requireSession(req: Request, res: Response, authService: AuthServ
 	return authenticatedSession;
 }
 
-export function createAccountRouter(authService: AuthService, accountService: AccountService): Router {
+function parseDiscordConfig(body: unknown): Partial<DiscordNotificationChannelConfig> | undefined {
+	if (!body || typeof body !== "object") {
+		return undefined;
+	}
+
+	return body as Partial<DiscordNotificationChannelConfig>;
+}
+
+export function createAccountRouter(
+	authService: AuthService,
+	accountService: AccountService,
+	monitoringService: MonitoringService
+): Router {
 	const router = Router();
 
 	router.get("/dashboard", async (req, res) => {
@@ -25,6 +39,17 @@ export function createAccountRouter(authService: AuthService, accountService: Ac
 
 		const data = await accountService.getDashboardData(authenticatedSession.user.id);
 		res.json(data);
+	});
+
+	router.get("/monitor", async (req, res) => {
+		const authenticatedSession = await requireSession(req, res, authService);
+		if (!authenticatedSession) {
+			return;
+		}
+
+		const data = await accountService.getDashboardData(authenticatedSession.user.id);
+		const snapshot = await monitoringService.getMonitorSnapshot(data.watchRules);
+		res.json(snapshot);
 	});
 
 	router.post("/watch-rules", async (req, res) => {
@@ -101,7 +126,8 @@ export function createAccountRouter(authService: AuthService, accountService: Ac
 			const channel = await accountService.createNotificationChannel(authenticatedSession.user.id, {
 				type: req.body?.type,
 				destination: typeof req.body?.destination === "string" ? req.body.destination : "",
-				displayName: typeof req.body?.displayName === "string" ? req.body.displayName : null
+				displayName: typeof req.body?.displayName === "string" ? req.body.displayName : null,
+				config: parseDiscordConfig(req.body?.config)
 			});
 			res.status(201).json(channel);
 		} catch (error) {
@@ -123,6 +149,10 @@ export function createAccountRouter(authService: AuthService, accountService: Ac
 		try {
 			const channel = await accountService.updateNotificationChannel(authenticatedSession.user.id, req.params.id, {
 				displayName: typeof req.body?.displayName === "string" ? req.body.displayName : undefined,
+				destination: typeof req.body?.destination === "string" ? req.body.destination : undefined,
+				config: Object.prototype.hasOwnProperty.call(req.body || {}, "config")
+					? parseDiscordConfig(req.body?.config) ?? null
+					: undefined,
 				isActive: typeof req.body?.isActive === "boolean" ? req.body.isActive : undefined
 			});
 			res.json(channel);

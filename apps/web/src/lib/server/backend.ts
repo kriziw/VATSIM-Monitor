@@ -3,6 +3,8 @@ import { error } from "@sveltejs/kit";
 import type {
 	AuthenticatedSession,
 	ControllerEvent,
+	DiscordNotificationChannelConfig,
+	MonitorSnapshot,
 	MonitorStatus,
 	NotificationChannel,
 	WatchRule
@@ -79,7 +81,7 @@ async function requestWithSession(
 	path: string,
 	options?: {
 		method?: "DELETE" | "GET" | "PATCH" | "POST";
-		body?: Record<string, boolean | null | string>;
+		body?: unknown;
 	}
 ) {
 	const response = await fetch(`${getApiBaseUrl()}${path}`, {
@@ -105,6 +107,10 @@ async function requestWithSession(
 
 export async function fetchDashboardData(sessionId: string): Promise<DashboardResponse> {
 	return requestWithSession(sessionId, "/api/v1/dashboard") as Promise<DashboardResponse>;
+}
+
+export async function fetchMonitorSnapshot(sessionId: string): Promise<MonitorSnapshot> {
+	return requestWithSession(sessionId, "/api/v1/monitor") as Promise<MonitorSnapshot>;
 }
 
 export async function fetchMonitoringStatus(): Promise<MonitorStatus> {
@@ -154,7 +160,12 @@ export async function deleteWatchRule(sessionId: string, id: string) {
 
 export async function createNotificationChannel(
 	sessionId: string,
-	body: { destination: string; displayName: string; type: "discord_webhook" }
+	body: {
+		destination: string;
+		displayName: string;
+		type: "discord_webhook";
+		config?: Partial<DiscordNotificationChannelConfig>;
+	}
 ) {
 	return requestWithSession(sessionId, "/api/v1/notification-channels", {
 		method: "POST",
@@ -165,12 +176,19 @@ export async function createNotificationChannel(
 export async function updateNotificationChannel(
 	sessionId: string,
 	id: string,
-	body: { displayName?: string; isActive?: boolean }
+	body: {
+		displayName?: string;
+		destination?: string;
+		config?: Partial<DiscordNotificationChannelConfig> | null;
+		isActive?: boolean;
+	}
 ) {
 	return requestWithSession(sessionId, `/api/v1/notification-channels/${id}`, {
 		method: "PATCH",
 		body: {
 			displayName: typeof body.displayName === "string" ? body.displayName : null,
+			destination: typeof body.destination === "string" ? body.destination : null,
+			config: Object.prototype.hasOwnProperty.call(body, "config") ? body.config ?? null : undefined,
 			isActive: typeof body.isActive === "boolean" ? body.isActive : null
 		}
 	});
