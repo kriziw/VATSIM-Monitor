@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/kriziw/VATSIM-Monitor/compare/v0.1.2...v0.1.3) (2026-03-30)
+
+
+### Bug Fixes
+
+* set web origin for docker installs ([4b3e217](https://github.com/kriziw/VATSIM-Monitor/commit/4b3e217f24bdfb8da87b42da6baadf6a4ce0ac17))
+* set web origin for docker installs ([bf71a28](https://github.com/kriziw/VATSIM-Monitor/commit/bf71a280a5f4d9086748103e630bf57117c82479))
+
 ## [0.1.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.1.1...v0.1.2) (2026-03-30)
 
 
