@@ -3,7 +3,7 @@ set -e
 
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
   echo "Running database migrations"
-  npm run db:migrate
+  npm run db:migrate:prod
 fi
 
 exec "$@"

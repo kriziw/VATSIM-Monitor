@@ -35,6 +35,7 @@ COPY --from=build /app/packages/domain/package.json ./packages/domain/package.js
 COPY --from=build /app/packages/domain/dist ./packages/domain/dist
 COPY --from=build /app/packages/integrations/package.json ./packages/integrations/package.json
 COPY --from=build /app/packages/integrations/dist ./packages/integrations/dist
+COPY --from=build /app/packages/data/migrations ./packages/data/migrations
 COPY apps/server/docker-entrypoint.sh ./apps/server/docker-entrypoint.sh
 
 WORKDIR /app/apps/server
