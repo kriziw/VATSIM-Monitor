@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.3...v0.2.4) (2026-03-30)
+
+
+### Bug Fixes
+
+* harden deployment and session handling ([#19](https://github.com/kriziw/VATSIM-Monitor/issues/19)) ([49b15e9](https://github.com/kriziw/VATSIM-Monitor/commit/49b15e994b59a8f95d9218a32ff1bc09ebc64c84))
+
 ## [0.2.3](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.2...v0.2.3) (2026-03-30)
 
 
