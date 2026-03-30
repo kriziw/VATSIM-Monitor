@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.6...v0.2.7) (2026-03-30)
+
+
+### Bug Fixes
+
+* publish docker releases for amd64 only ([#25](https://github.com/kriziw/VATSIM-Monitor/issues/25)) ([90efab1](https://github.com/kriziw/VATSIM-Monitor/commit/90efab12a3063bce4f4711f6ee3adaa1ced683a9))
+
 ## [0.2.6](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.5...v0.2.6) (2026-03-30)
 
 
