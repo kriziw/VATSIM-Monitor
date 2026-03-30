@@ -37,3 +37,9 @@ jobs:
 
       - name: Build Docker images
         run: docker compose build server web
+
+      - name: Verify server image entrypoint
+        run: docker run --rm --entrypoint sh $(docker compose images -q server) -c "test -f /app/apps/server/dist/index.js"
+
+      - name: Verify web image entrypoint
+        run: docker run --rm --entrypoint sh $(docker compose images -q web) -c "test -f /app/apps/web/build/index.js"

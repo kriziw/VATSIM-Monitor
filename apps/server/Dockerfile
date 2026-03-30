@@ -20,6 +20,7 @@ RUN npm run build --workspace @vatsim-monitor/domain
 RUN npm run build --workspace @vatsim-monitor/data
 RUN npm run build --workspace @vatsim-monitor/integrations
 RUN npm run build --workspace @vatsim-monitor/server
+RUN test -f /app/apps/server/dist/index.js
 
 FROM node:20-alpine AS runtime
 
@@ -32,6 +33,7 @@ COPY --from=build /app/apps/server ./apps/server
 COPY --from=build /app/packages/data ./packages/data
 COPY --from=build /app/packages/domain ./packages/domain
 COPY --from=build /app/packages/integrations ./packages/integrations
+RUN test -f /app/apps/server/dist/index.js
 
 WORKDIR /app/apps/server
 RUN chmod +x docker-entrypoint.sh

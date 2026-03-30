@@ -69,6 +69,8 @@ jobs:
           context: .
           file: apps/${{ matrix.service }}/Dockerfile
           platforms: ${{ env.DOCKER_PLATFORMS }}
+          no-cache: true
+          pull: true
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}-${{ matrix.service }}:${{ env.VERSION }}

@@ -18,6 +18,7 @@ COPY packages/integrations packages/integrations
 RUN npm run build --workspace @vatsim-monitor/domain
 RUN npm run build --workspace @vatsim-monitor/integrations
 RUN npm run build --workspace @vatsim-monitor/web
+RUN test -f /app/apps/web/build/index.js
 
 FROM node:20-alpine AS runtime
 
@@ -32,6 +33,7 @@ COPY --from=build /app/packages/domain/package.json ./packages/domain/package.js
 COPY --from=build /app/packages/domain/dist ./packages/domain/dist
 COPY --from=build /app/packages/integrations/package.json ./packages/integrations/package.json
 COPY --from=build /app/packages/integrations/dist ./packages/integrations/dist
+RUN test -f /app/apps/web/build/index.js
 
 WORKDIR /app/apps/web
 
