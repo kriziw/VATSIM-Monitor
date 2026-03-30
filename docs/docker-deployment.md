@@ -18,6 +18,14 @@ Docker is the preferred deployment path for this repository.
 3. Run `docker compose pull`.
 4. Run `docker compose up -d`.
 
+Example:
+
+```bash
+cp .env.docker.example .env
+docker compose pull
+docker compose up -d
+```
+
 By default, the compose file pulls the published Docker Hub images:
 
 - `kriziw/vatsim-monitor-server:latest`
@@ -30,6 +38,53 @@ You can pin a specific published version by changing `APP_VERSION` in `.env`, fo
 If you fork the images into another Docker Hub namespace, change:
 
 - `IMAGE_NAMESPACE`
+
+## .env Guide
+
+The provided `.env.docker.example` includes all values needed for a first install.
+
+Most important values:
+
+- `IMAGE_NAMESPACE`
+  Docker Hub namespace used by compose. Default: `kriziw`
+- `APP_VERSION`
+  Published image tag to pull. Default: `latest`
+- `MYSQL_ROOT_PASSWORD`
+  MariaDB root password
+- `MYSQL_DATABASE`
+  Application database name. Default: `vatsim_monitor`
+- `MYSQL_USER`
+  Application database user. Default: `vatsim_monitor`
+- `MYSQL_PASSWORD`
+  Application database password
+- `MYSQL_PORT`
+  Host port for MariaDB. Default: `3306`
+- `SERVER_PORT`
+  Host port for the backend API. Default: `8080`
+- `WEB_PORT`
+  Host port for the frontend. Default: `3000`
+- `PRIVATE_API_BASE_URL`
+  Internal URL the web container uses to reach the backend. Leave this as `http://server:8080` for normal compose installs.
+- `MONITOR_POLL_INTERVAL_MS`
+  VATSIM polling interval. Default: `15000`
+- `VATSIM_OAUTH_ENABLED`
+  Keep this `false` unless optional VATSIM OAuth is configured later
+- `RUN_MIGRATIONS`
+  Runs database migrations when the server container starts. Default: `true`
+
+Recommended first edit:
+
+```env
+MYSQL_ROOT_PASSWORD=change-this-root-password
+MYSQL_PASSWORD=change-this-app-password
+```
+
+Once `.env` is set, bring the stack up with:
+
+```bash
+docker compose pull
+docker compose up -d
+```
 
 ## Services
 
