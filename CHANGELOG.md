@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.7...v0.3.0) (2026-03-30)
+
+
+### Features
+
+* split monitor and settings views ([#27](https://github.com/kriziw/VATSIM-Monitor/issues/27)) ([2066de3](https://github.com/kriziw/VATSIM-Monitor/commit/2066de3b50d75aaf340e621e41d233434b88660b))
+
 ## [0.2.7](https://github.com/kriziw/VATSIM-Monitor/compare/v0.2.6...v0.2.7) (2026-03-30)
 
 
