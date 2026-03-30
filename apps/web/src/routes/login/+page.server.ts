@@ -5,12 +5,12 @@ import type { Actions, PageServerLoad } from "./$types";
 const SESSION_COOKIE_NAME = "vm_session";
 const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
-function setSessionCookie(cookies: Cookies, sessionId: string) {
+function setSessionCookie(cookies: Cookies, sessionId: string, secure: boolean) {
 	cookies.set(SESSION_COOKIE_NAME, sessionId, {
 		path: "/",
 		httpOnly: true,
 		sameSite: "lax",
-		secure: false,
+		secure,
 		maxAge: SESSION_COOKIE_MAX_AGE_SECONDS
 	});
 }
@@ -24,7 +24,7 @@ export const load = (async ({ locals }) => {
 }) satisfies PageServerLoad;
 
 export const actions = {
-	login: async ({ request, cookies }) => {
+	login: async ({ request, cookies, url }) => {
 		const form = await request.formData();
 		const identifier = String(form.get("identifier") || "");
 		const password = String(form.get("password") || "");
@@ -49,10 +49,10 @@ export const actions = {
 			});
 		}
 
-		setSessionCookie(cookies, sessionId);
+		setSessionCookie(cookies, sessionId, url.protocol === "https:");
 		throw redirect(302, "/dashboard");
 	},
-	register: async ({ request, cookies }) => {
+	register: async ({ request, cookies, url }) => {
 		const form = await request.formData();
 		const username = String(form.get("username") || "");
 		const email = String(form.get("email") || "");
@@ -84,7 +84,7 @@ export const actions = {
 			});
 		}
 
-		setSessionCookie(cookies, sessionId);
+		setSessionCookie(cookies, sessionId, url.protocol === "https:");
 		throw redirect(302, "/dashboard");
 	}
 } satisfies Actions;

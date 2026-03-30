@@ -47,17 +47,27 @@ export async function fetchCurrentSession(sessionId: string): Promise<Authentica
 		return null;
 	}
 
-	const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/session`, {
-		headers: {
-			"x-session-id": sessionId
-		}
-	});
+	let response: Response;
+
+	try {
+		response = await fetch(`${getApiBaseUrl()}/api/v1/auth/session`, {
+			headers: {
+				"x-session-id": sessionId
+			}
+		});
+	} catch {
+		throw error(503, "Authentication service is unavailable.");
+	}
 
 	if (response.status === 401) {
 		return null;
 	}
 
 	if (!response.ok) {
+		if (response.status >= 500) {
+			throw error(503, "Authentication service is unavailable.");
+		}
+
 		throw error(response.status, "Failed to load the current session.");
 	}
 

@@ -2,13 +2,14 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-COPY package.json tsconfig.base.json ./
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY apps/web/package.json apps/web/package.json
 COPY apps/server/package.json apps/server/package.json
 COPY packages/data/package.json packages/data/package.json
 COPY packages/domain/package.json packages/domain/package.json
 COPY packages/integrations/package.json packages/integrations/package.json
 
-RUN npm install
+RUN npm ci
 
 COPY apps/server apps/server
 COPY packages/data packages/data
