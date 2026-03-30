@@ -78,6 +78,21 @@ Docker is the preferred deployment method for this repository.
 
 The default `docker-compose.yml` now targets the published Docker Hub images so a user can deploy directly with `docker compose pull` and `docker compose up -d`.
 
+### Quick Install
+
+1. Copy [.env.docker.example](.env.docker.example) to `.env`.
+2. Update at least `MYSQL_ROOT_PASSWORD` and `MYSQL_PASSWORD`.
+3. Optionally change `SERVER_PORT`, `WEB_PORT`, or `APP_VERSION`.
+4. Run `docker compose pull`.
+5. Run `docker compose up -d`.
+
+After startup:
+
+- the web app is available on `http://localhost:${WEB_PORT}` and defaults to `http://localhost:3000`
+- the backend is available on `http://localhost:${SERVER_PORT}` and defaults to `http://localhost:8080`
+
+The full Docker deployment guide is in [docs/docker-deployment.md](docs/docker-deployment.md).
+
 Included Docker artifacts:
 
 - `docker-compose.yml`
