@@ -69,9 +69,19 @@ These are now required to mirror the `MindBuzz` release flow:
 - `.github/workflows/pr-title-check.yml`
   Enforces Conventional Commit pull request titles.
 - `.github/workflows/release-please.yml`
-  Uses `RELEASE_PLEASE_TOKEN` to keep the release PR current and cut the next `0.x` tag and GitHub release.
+  Uses `RELEASE_PLEASE_TOKEN` to keep the release PR current and cut the next `0.x` tag and GitHub release. It also supports manual reruns through `workflow_dispatch`.
 - `.github/workflows/docker-release.yml`
   Publishes multi-arch Docker Hub images for `server` and `web` when a GitHub release is published.
+
+### Releasable commit types
+
+Release Please does not open a new release PR for every merge. By default it looks for releasable commits since the last tag, such as:
+
+- `fix:`
+- `feat:`
+- `deps:`
+
+Commits titled only as `docs:` or `chore:` will still merge normally, but they do not trigger a new release PR on their own.
 
 ### Docker Hub image names
 
