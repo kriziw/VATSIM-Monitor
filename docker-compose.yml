@@ -43,6 +43,7 @@ services:
     depends_on:
       - server
     environment:
+      ORIGIN: ${ORIGIN:-http://localhost:3000}
       PRIVATE_API_BASE_URL: ${PRIVATE_API_BASE_URL:-http://server:8080}
     ports:
       - "${WEB_PORT:-3000}:3000"
