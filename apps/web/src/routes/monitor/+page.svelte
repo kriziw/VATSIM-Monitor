@@ -9,6 +9,7 @@
 	$: watchedControllers = data.monitorSnapshot.watchedControllers;
 	$: otherControllers = data.monitorSnapshot.otherControllers;
 	$: pollIntervalMs = data.monitoringStatus?.pollIntervalMs ?? 15000;
+	$: activeWatchRuleCount = data.dashboardData?.watchRules.filter((watchRule) => watchRule.isActive).length ?? 0;
 
 	onMount(() => {
 		refreshTimer = setInterval(() => {
@@ -68,7 +69,7 @@
 			</div>
 			<div>
 				<span>Active watch rules</span>
-				<strong>{data.dashboardData?.watchRules.filter((watchRule) => watchRule.isActive).length ?? 0}</strong>
+				<strong>{activeWatchRuleCount}</strong>
 			</div>
 			<div>
 				<span>Auto refresh</span>
@@ -91,8 +92,10 @@
 			</span>
 		</div>
 		<div class="card-list">
-			{#if watchedControllers.length === 0}
-				<p class="empty-state">No currently online controllers match your active watch rules yet. Add or adjust rules in Settings and this page will refresh automatically.</p>
+			{#if activeWatchRuleCount === 0}
+				<p class="empty-state">You do not have any active watch rules yet. Add one in Settings and the monitor will start prioritising matching controllers automatically.</p>
+			{:else if watchedControllers.length === 0}
+				<p class="empty-state">No currently online controllers match your active watch rules yet. Keep this page open and it will refresh automatically as the network changes.</p>
 			{:else}
 				{#each watchedControllers as controller}
 					<div class="stack-card">
@@ -188,6 +191,7 @@
 	<article class="dashboard-card dashboard-card--wide" id="recent-activity">
 		<div class="section-heading">
 			<h2>Recent controller activity</h2>
+			<span class="status-chip status-chip--muted">Auto-refreshing</span>
 		</div>
 		<div class="card-list">
 			{#if data.recentEvents.length === 0}

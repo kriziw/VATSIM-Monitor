@@ -1,6 +1,7 @@
 import type {
 	ControllerEvent,
 	ControllerEventType,
+	DiscordNotificationChannelConfig,
 	MonitorController,
 	MonitorSnapshot,
 	MonitorStatus,
@@ -14,6 +15,7 @@ import type {
 	NotificationRoutingStore
 } from "@vatsim-monitor/data";
 import type {
+	DiscordWebhookPayload,
 	DiscordNotifier,
 	TopdownResolver,
 	VatsimControllerRecord,
@@ -27,6 +29,10 @@ function escapeRegex(value: string): string {
 function patternMatches(pattern: string, callsign: string): boolean {
 	const regex = new RegExp(`^${escapeRegex(pattern).replace(/%/g, ".*")}$`, "i");
 	return regex.test(callsign);
+}
+
+function colorToDecimal(color: string): number {
+	return Number.parseInt(color.replace(/^#/, ""), 16);
 }
 
 export interface MonitoringServiceOptions {
@@ -343,8 +349,7 @@ export class MonitoringService {
 			try {
 				await this.discordNotifier.sendWebhook(
 					target.destination,
-					type === "controller_online" ? "Controller online" : "Controller offline",
-					this.buildDiscordBody(type, controller)
+					this.buildDiscordPayload(type, controller, target.config)
 				);
 				await this.notificationDeliveryStore.markSent(delivery.id);
 				sentNotifications += 1;
@@ -360,11 +365,45 @@ export class MonitoringService {
 		return { sentNotifications, skippedNotifications };
 	}
 
-	private buildDiscordBody(type: ControllerEventType, controller: VatsimControllerRecord): string {
-		if (type === "controller_online") {
-			return `Controller **${controller.name}** (${controller.cid}) logged on as **${controller.callsign}** on **${controller.frequency}**.`;
-		}
+	private buildDiscordPayload(
+		type: ControllerEventType,
+		controller: VatsimControllerRecord,
+		config: DiscordNotificationChannelConfig
+	): DiscordWebhookPayload {
+		const variables = {
+			callsign: controller.callsign,
+			frequency: controller.frequency,
+			controllerName: controller.name,
+			controllerCid: String(controller.cid),
+			eventType: type,
+			eventLabel: type === "controller_online" ? "online" : "offline",
+			statusLabel: type === "controller_online" ? "came online" : "went offline"
+		};
 
-		return `Controller **${controller.name}** (${controller.cid}) logged off from **${controller.callsign}**.`;
+		const renderTemplate = (template: string | null): string | null => {
+			if (!template || template.trim().length === 0) {
+				return null;
+			}
+
+			return template.replace(/\{\{(\w+)\}\}/g, (match, key: keyof typeof variables) => variables[key] ?? match);
+		};
+
+		const color = config.color
+			? colorToDecimal(config.color)
+			: type === "controller_online"
+				? 0x1c7f58
+				: 0xaa4d24;
+
+		return {
+			content: renderTemplate(config.contentTemplate),
+			embeds: [
+				{
+					title: renderTemplate(config.titleTemplate) ?? undefined,
+					description: renderTemplate(config.descriptionTemplate) ?? undefined,
+					color,
+					timestamp: new Date().toISOString()
+				}
+			]
+		};
 	}
 }

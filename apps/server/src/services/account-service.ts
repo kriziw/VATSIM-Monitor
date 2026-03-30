@@ -1,4 +1,10 @@
-import type { NotificationChannel, NotificationChannelType, WatchRule } from "@vatsim-monitor/domain";
+import {
+	getDefaultDiscordNotificationConfig,
+	type DiscordNotificationChannelConfig,
+	type NotificationChannel,
+	type NotificationChannelType,
+	type WatchRule
+} from "@vatsim-monitor/domain";
 import { NotificationChannelStore, WatchRuleStore } from "@vatsim-monitor/data";
 
 export class AccountError extends Error {
@@ -33,6 +39,61 @@ function validateDiscordWebhook(destination: string): void {
 	if (!/^https:\/\/discord\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_-]+$/.test(destination)) {
 		throw new AccountError("Discord webhook URL is not valid.", 400);
 	}
+}
+
+function normalizeHexColor(color: string | null | undefined): string | null {
+	if (!color || color.trim().length === 0) {
+		return null;
+	}
+
+	const normalized = color.trim().startsWith("#") ? color.trim() : `#${color.trim()}`;
+	if (!/^#[0-9A-Fa-f]{6}$/.test(normalized)) {
+		throw new AccountError("Discord embed colour must be a 6-digit hex value.", 400);
+	}
+
+	return normalized.toUpperCase();
+}
+
+function normalizeTemplateField(
+	value: string | null | undefined,
+	field: string,
+	maxLength: number,
+	allowEmpty = false
+): string | null {
+	const normalized = value?.trim() ?? "";
+	if (!allowEmpty && normalized.length === 0) {
+		throw new AccountError(`${field} is required.`, 400);
+	}
+
+	if (normalized.length > maxLength) {
+		throw new AccountError(`${field} must be ${maxLength} characters or fewer.`, 400);
+	}
+
+	if (allowEmpty && normalized.length === 0) {
+		return null;
+	}
+
+	return normalized;
+}
+
+function normalizeDiscordConfig(
+	input?: Partial<DiscordNotificationChannelConfig> | null
+): DiscordNotificationChannelConfig {
+	const defaults = getDefaultDiscordNotificationConfig();
+
+	return {
+		titleTemplate:
+			normalizeTemplateField(input?.titleTemplate ?? defaults.titleTemplate, "Discord title", 256) ??
+			defaults.titleTemplate,
+		descriptionTemplate:
+			normalizeTemplateField(
+				input?.descriptionTemplate ?? defaults.descriptionTemplate,
+				"Discord description",
+				4000
+			) ?? defaults.descriptionTemplate,
+		contentTemplate: normalizeTemplateField(input?.contentTemplate ?? null, "Discord content", 2000, true),
+		color: normalizeHexColor(input?.color ?? null)
+	};
 }
 
 export class AccountService {
@@ -102,31 +163,51 @@ export class AccountService {
 
 	public async createNotificationChannel(
 		userId: string,
-		input: { type: NotificationChannelType; destination: string; displayName: string | null }
+		input: {
+			type: NotificationChannelType;
+			destination: string;
+			displayName: string | null;
+			config?: Partial<DiscordNotificationChannelConfig> | null;
+		}
 	): Promise<NotificationChannel> {
 		if (input.type !== "discord_webhook") {
 			throw new AccountError("Only Discord webhook channels are supported in this slice.", 400);
 		}
 
-		validateDiscordWebhook(input.destination.trim());
+		const destination = input.destination.trim();
+		validateDiscordWebhook(destination);
 
 		return this.notificationChannelStore.create({
 			userId,
 			type: input.type,
-			destination: input.destination.trim(),
-			displayName: input.displayName?.trim() || null
+			destination,
+			displayName: input.displayName?.trim() || null,
+			config: normalizeDiscordConfig(input.config)
 		});
 	}
 
 	public async updateNotificationChannel(
 		userId: string,
 		id: string,
-		update: { displayName?: string | null; isActive?: boolean }
+		update: {
+			displayName?: string | null;
+			destination?: string;
+			config?: Partial<DiscordNotificationChannelConfig> | null;
+			isActive?: boolean;
+		}
 	): Promise<NotificationChannel> {
+		if (typeof update.destination === "string") {
+			validateDiscordWebhook(update.destination.trim());
+		}
+
 		const channel = await this.notificationChannelStore.update({
 			id,
 			userId,
 			displayName: update.displayName,
+			destination: typeof update.destination === "string" ? update.destination.trim() : undefined,
+			config: Object.prototype.hasOwnProperty.call(update, "config")
+				? normalizeDiscordConfig(update.config)
+				: undefined,
 			isActive: update.isActive
 		});
 

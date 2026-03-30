@@ -1,6 +1,37 @@
 <script lang="ts">
+	import {
+		DISCORD_TEMPLATE_VARIABLES,
+		getDefaultDiscordNotificationConfig,
+		type NotificationChannel
+	} from "@vatsim-monitor/domain";
+
 	export let data;
 	export let form;
+
+	const titleTemplateExample = "Controller {{eventLabel}}";
+	const descriptionTemplateExample =
+		"**{{controllerName}}** ({{controllerCid}}) {{statusLabel}} as **{{callsign}}** on **{{frequency}}**.";
+	const contentTemplateExample = "@here {{callsign}} is now {{eventLabel}}";
+
+	function fieldValue(
+		channel: NotificationChannel,
+		field: "color" | "contentTemplate" | "descriptionTemplate" | "displayName" | "destination" | "titleTemplate"
+	): string {
+		if (form?.section === "notificationChannels" && form?.channelId === channel.id) {
+			return form?.[field] ?? "";
+		}
+
+		if (field === "displayName") {
+			return channel.displayName ?? "";
+		}
+
+		if (field === "destination") {
+			return channel.destination ?? "";
+		}
+
+		const config = channel.config ?? getDefaultDiscordNotificationConfig();
+		return config[field] ?? "";
+	}
 </script>
 
 <svelte:head>
@@ -119,11 +150,20 @@
 		<div class="section-heading">
 			<h2>Alert channels</h2>
 		</div>
-		<p>Send controller alerts to Discord webhooks when watched ATC positions come online or drop offline.</p>
+		<p>Send controller alerts to Discord webhooks when watched ATC positions come online or drop offline, and tailor the message format for each destination.</p>
 
 		{#if form?.section === "notificationChannels"}
 			<div class="form-error">{form.message}</div>
 		{/if}
+
+		<div class="empty-state template-note">
+			<strong>Template variables</strong>
+			<div class="tag-row">
+				{#each DISCORD_TEMPLATE_VARIABLES as variable}
+					<span class="rule-tag">{variable}</span>
+				{/each}
+			</div>
+		</div>
 
 		<div class="card-list">
 			{#if data.notificationChannels.length === 0}
@@ -138,6 +178,48 @@
 							</span>
 						</div>
 						<p class="mono">{channel.destination}</p>
+						<form class="form-grid settings-form" method="post">
+							<input type="hidden" name="id" value={channel.id} />
+							<label>
+								<span>Channel name</span>
+								<input name="displayName" placeholder="Tower alerts" value={fieldValue(channel, "displayName")} />
+							</label>
+							<label>
+								<span>Webhook URL</span>
+								<input name="destination" placeholder="https://discord.com/api/webhooks/..." value={fieldValue(channel, "destination")} />
+							</label>
+							<label>
+								<span>Title template</span>
+								<input
+									name="titleTemplate"
+									placeholder={titleTemplateExample}
+									value={fieldValue(channel, "titleTemplate")}
+								/>
+							</label>
+							<label>
+								<span>Description template</span>
+								<textarea
+									name="descriptionTemplate"
+									rows="4"
+									placeholder={descriptionTemplateExample}
+								>{fieldValue(channel, "descriptionTemplate")}</textarea>
+							</label>
+							<label>
+								<span>Content template</span>
+								<textarea
+									name="contentTemplate"
+									rows="3"
+									placeholder={contentTemplateExample}
+								>{fieldValue(channel, "contentTemplate")}</textarea>
+							</label>
+							<label>
+								<span>Embed colour</span>
+								<input name="color" placeholder="#1C7F58" value={fieldValue(channel, "color")} />
+							</label>
+							<button class="button button--secondary" type="submit" formaction="?/saveNotificationChannel">
+								Save notification format
+							</button>
+						</form>
 						<div class="button-row compact-row">
 							<form method="post">
 								<input type="hidden" name="id" value={channel.id} />
@@ -169,13 +251,5 @@
 			/>
 			<button class="button button--primary" type="submit" formaction="?/addNotificationChannel">Add channel</button>
 		</form>
-	</article>
-
-	<article class="dashboard-card" id="notification-customisation">
-		<div class="section-heading">
-			<h2>Notification customisation</h2>
-		</div>
-		<p>Discord message templates and per-channel formatting will live here once that feature is ready.</p>
-		<div class="empty-state">For now, alerts use the standard message format so the monitoring and delivery flow stays predictable.</div>
 	</article>
 </section>

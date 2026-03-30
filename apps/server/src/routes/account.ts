@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from "express";
+import type { DiscordNotificationChannelConfig } from "@vatsim-monitor/domain";
 import type { AuthService } from "../services/auth-service.js";
 import { AccountError, AccountService } from "../services/account-service.js";
 import type { MonitoringService } from "../services/monitoring-service.js";
@@ -13,6 +14,14 @@ async function requireSession(req: Request, res: Response, authService: AuthServ
 	}
 
 	return authenticatedSession;
+}
+
+function parseDiscordConfig(body: unknown): Partial<DiscordNotificationChannelConfig> | undefined {
+	if (!body || typeof body !== "object") {
+		return undefined;
+	}
+
+	return body as Partial<DiscordNotificationChannelConfig>;
 }
 
 export function createAccountRouter(
@@ -117,7 +126,8 @@ export function createAccountRouter(
 			const channel = await accountService.createNotificationChannel(authenticatedSession.user.id, {
 				type: req.body?.type,
 				destination: typeof req.body?.destination === "string" ? req.body.destination : "",
-				displayName: typeof req.body?.displayName === "string" ? req.body.displayName : null
+				displayName: typeof req.body?.displayName === "string" ? req.body.displayName : null,
+				config: parseDiscordConfig(req.body?.config)
 			});
 			res.status(201).json(channel);
 		} catch (error) {
@@ -139,6 +149,10 @@ export function createAccountRouter(
 		try {
 			const channel = await accountService.updateNotificationChannel(authenticatedSession.user.id, req.params.id, {
 				displayName: typeof req.body?.displayName === "string" ? req.body.displayName : undefined,
+				destination: typeof req.body?.destination === "string" ? req.body.destination : undefined,
+				config: Object.prototype.hasOwnProperty.call(req.body || {}, "config")
+					? parseDiscordConfig(req.body?.config) ?? null
+					: undefined,
 				isActive: typeof req.body?.isActive === "boolean" ? req.body.isActive : undefined
 			});
 			res.json(channel);
