@@ -27,14 +27,6 @@ function readDiscordTemplate(
 	};
 }
 
-function readDiscordConfig(form: FormData): Partial<DiscordNotificationChannelConfig> {
-	return {
-		controllerOnline: readDiscordTemplate(form, "controllerOnline"),
-		controllerOffline: readDiscordTemplate(form, "controllerOffline"),
-		controllerChange: readDiscordTemplate(form, "controllerChange")
-	};
-}
-
 function readSelectedTemplate(form: FormData): DiscordNotificationTemplateType {
 	const value = String(form.get("selectedTemplate") || "");
 	if (value === "controllerOffline" || value === "controllerChange") {
@@ -95,8 +87,10 @@ export const actions = {
 		const id = String(form.get("id") || "");
 		const displayName = String(form.get("displayName") || "");
 		const destination = String(form.get("destination") || "").trim();
-		const config = readDiscordConfig(form);
 		const selectedTemplate = readSelectedTemplate(form);
+		const config: Partial<DiscordNotificationChannelConfig> = {
+			[selectedTemplate]: readDiscordTemplate(form, selectedTemplate)
+		};
 
 		try {
 			await updateNotificationChannel(sessionId, id, {
