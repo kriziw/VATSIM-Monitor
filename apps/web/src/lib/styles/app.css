@@ -883,11 +883,17 @@ textarea {
 	align-self: start;
 }
 
-.channel-selector,
-.template-selector {
+.channel-selector {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 14px;
+	margin-top: 16px;
+}
+
+.template-selector {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
 	margin-top: 16px;
 }
 
@@ -901,6 +907,13 @@ textarea {
 	border: 1px solid var(--line);
 	background: rgba(255, 255, 255, 0.7);
 	cursor: pointer;
+}
+
+.template-selector__item {
+	display: inline-flex;
+	align-items: center;
+	padding: 10px 16px;
+	border-radius: 999px;
 }
 
 .channel-selector__item strong,
@@ -921,6 +934,10 @@ textarea {
 	border-color: rgba(12, 39, 70, 0.2);
 	background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(232, 241, 250, 0.92));
 	box-shadow: 0 14px 32px rgba(12, 39, 70, 0.08);
+}
+
+.alert-template-note {
+	margin-top: 14px;
 }
 
 .alerts-workspace {
@@ -1080,7 +1097,6 @@ textarea {
 	.monitor-strip,
 	.block-palette__items,
 	.channel-selector,
-	.template-selector,
 	.template-guide,
 	.template-section-grid,
 	.alerts-workspace {

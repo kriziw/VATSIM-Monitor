@@ -362,8 +362,9 @@ export class MonitoringService {
 
 		const matchingTargets = new Map<string, (typeof routedTargets)[number]>();
 		for (const target of routedTargets) {
+			const destinationKey = target.destination.trim().toLowerCase();
 			if (patternMatches(target.pattern, controller.callsign)) {
-				matchingTargets.set(target.channelId, target);
+				matchingTargets.set(destinationKey, target);
 				continue;
 			}
 
@@ -377,7 +378,7 @@ export class MonitoringService {
 				}
 
 				if (patternMatches(target.pattern, relatedCallsign)) {
-					matchingTargets.set(target.channelId, target);
+					matchingTargets.set(destinationKey, target);
 					break;
 				}
 			}

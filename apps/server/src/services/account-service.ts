@@ -113,6 +113,22 @@ function normalizeDiscordConfig(
 	};
 }
 
+function mergeDiscordConfig(
+	existing: DiscordNotificationChannelConfig | null | undefined,
+	update: Partial<DiscordNotificationChannelConfig> | null | undefined
+): DiscordNotificationChannelConfig {
+	const base = coerceDiscordNotificationConfig(existing ?? getDefaultDiscordNotificationConfig());
+	if (!update) {
+		return normalizeDiscordConfig(base);
+	}
+
+	return normalizeDiscordConfig({
+		controllerOnline: update.controllerOnline ?? base.controllerOnline,
+		controllerOffline: update.controllerOffline ?? base.controllerOffline,
+		controllerChange: update.controllerChange ?? base.controllerChange
+	});
+}
+
 export class AccountService {
 	constructor(
 		private readonly watchRuleStore: WatchRuleStore,
@@ -193,6 +209,10 @@ export class AccountService {
 
 		const destination = input.destination.trim();
 		validateDiscordWebhook(destination);
+		const existingChannel = await this.notificationChannelStore.getByDestination(userId, destination);
+		if (existingChannel) {
+			throw new AccountError("That Discord webhook is already configured for this account.", 409);
+		}
 
 		return this.notificationChannelStore.create({
 			userId,
@@ -213,8 +233,19 @@ export class AccountService {
 			isActive?: boolean;
 		}
 	): Promise<NotificationChannel> {
+		const existing = await this.notificationChannelStore.getById(id, userId);
+		if (!existing) {
+			throw new AccountError("Notification channel was not found.", 404);
+		}
+
 		if (typeof update.destination === "string") {
-			validateDiscordWebhook(update.destination.trim());
+			const normalizedDestination = update.destination.trim();
+			validateDiscordWebhook(normalizedDestination);
+
+			const existingChannel = await this.notificationChannelStore.getByDestination(userId, normalizedDestination);
+			if (existingChannel && existingChannel.id !== id) {
+				throw new AccountError("That Discord webhook is already configured for this account.", 409);
+			}
 		}
 
 		const channel = await this.notificationChannelStore.update({
@@ -223,16 +254,12 @@ export class AccountService {
 			displayName: update.displayName,
 			destination: typeof update.destination === "string" ? update.destination.trim() : undefined,
 			config: Object.prototype.hasOwnProperty.call(update, "config")
-				? normalizeDiscordConfig(update.config)
+				? mergeDiscordConfig(existing.config, update.config)
 				: undefined,
 			isActive: update.isActive
 		});
 
-		if (!channel) {
-			throw new AccountError("Notification channel was not found.", 404);
-		}
-
-		return channel;
+		return channel ?? existing;
 	}
 
 	public async deleteNotificationChannel(userId: string, id: string): Promise<void> {
