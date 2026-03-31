@@ -193,6 +193,10 @@ export class AccountService {
 
 		const destination = input.destination.trim();
 		validateDiscordWebhook(destination);
+		const existingChannel = await this.notificationChannelStore.getByDestination(userId, destination);
+		if (existingChannel) {
+			throw new AccountError("That Discord webhook is already configured for this account.", 409);
+		}
 
 		return this.notificationChannelStore.create({
 			userId,
@@ -214,7 +218,13 @@ export class AccountService {
 		}
 	): Promise<NotificationChannel> {
 		if (typeof update.destination === "string") {
-			validateDiscordWebhook(update.destination.trim());
+			const normalizedDestination = update.destination.trim();
+			validateDiscordWebhook(normalizedDestination);
+
+			const existingChannel = await this.notificationChannelStore.getByDestination(userId, normalizedDestination);
+			if (existingChannel && existingChannel.id !== id) {
+				throw new AccountError("That Discord webhook is already configured for this account.", 409);
+			}
 		}
 
 		const channel = await this.notificationChannelStore.update({

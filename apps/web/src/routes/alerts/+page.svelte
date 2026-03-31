@@ -31,6 +31,7 @@
 
 	const templateSections: Array<{
 		key: DiscordNotificationTemplateType;
+		tabLabel: string;
 		title: string;
 		description: string;
 		exampleLabel: string;
@@ -38,6 +39,7 @@
 	}> = [
 		{
 			key: "controllerOnline",
+			tabLabel: "Online",
 			title: "Controller coming online",
 			description: "Use this when a watched position was previously empty and is now staffed.",
 			exampleLabel: "Example: EGLL_TWR has just come online.",
@@ -53,6 +55,7 @@
 		},
 		{
 			key: "controllerOffline",
+			tabLabel: "Offline",
 			title: "Controller going offline",
 			description: "Use this when a watched position was staffed and is now empty.",
 			exampleLabel: "Example: EGLL_TWR has just gone offline.",
@@ -68,6 +71,7 @@
 		},
 		{
 			key: "controllerChange",
+			tabLabel: "Change",
 			title: "Controller change",
 			description:
 				"Use this when the same watched position changes to a different controller within roughly 30 seconds.",
@@ -399,6 +403,7 @@
 						type="button"
 						on:click={() => {
 							selectedChannelId = channel.id;
+							selectedTemplate = "controllerOnline";
 						}}
 					>
 						<strong>{channel.displayName ?? "Discord webhook"}</strong>
@@ -447,11 +452,13 @@
 							selectedTemplate = section.key;
 						}}
 					>
-						<strong>{section.title}</strong>
-						<span>{section.description}</span>
+						<strong>{section.tabLabel}</strong>
 					</button>
 				{/each}
 			</div>
+			<p class="muted alert-template-note">
+				<strong>{activeTemplateSection.title}.</strong> {activeTemplateSection.description}
+			</p>
 		</article>
 
 		<article class="dashboard-card dashboard-card--wide">

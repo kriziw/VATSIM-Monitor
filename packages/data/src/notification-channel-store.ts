@@ -125,6 +125,22 @@ export class NotificationChannelStore {
 		return mapNotificationChannel(rows[0]);
 	}
 
+	public async getByDestination(userId: string, destination: string): Promise<NotificationChannel | null> {
+		const [rows] = await this.pool.execute<NotificationChannelRow[]>(
+			`SELECT id, user_id, type, display_name, destination, config_json, is_active, created_at
+			 FROM notification_channels
+			 WHERE user_id = ? AND destination = ?
+			 LIMIT 1`,
+			[userId, destination]
+		);
+
+		if (rows.length === 0) {
+			return null;
+		}
+
+		return mapNotificationChannel(rows[0]);
+	}
+
 	public async update(input: UpdateNotificationChannelInput): Promise<NotificationChannel | null> {
 		const updates: string[] = [];
 		const values: Array<string | boolean | null> = [];
