@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.9.0...v0.9.1) (2026-03-31)
+
+
+### Bug Fixes
+
+* prevent duplicate Discord webhook deliveries ([#47](https://github.com/kriziw/VATSIM-Monitor/issues/47)) ([92bddb6](https://github.com/kriziw/VATSIM-Monitor/commit/92bddb6cd7ea5b23c216a8509288d884c00f5808))
+
 ## [0.9.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.8.0...v0.9.0) (2026-03-30)
 
 
