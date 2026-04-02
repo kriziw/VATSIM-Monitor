@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.2...v0.10.3) (2026-04-02)
+
+
+### Bug Fixes
+
+* expand legacy alert colors per subtype ([#55](https://github.com/kriziw/VATSIM-Monitor/issues/55)) ([8a83d72](https://github.com/kriziw/VATSIM-Monitor/commit/8a83d72874e90166f80090c7b22ed11a65e06c2f))
+
 ## [0.10.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.1...v0.10.2) (2026-04-02)
 
 
