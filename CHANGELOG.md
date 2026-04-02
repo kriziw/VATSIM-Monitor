@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.6](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.5...v0.10.6) (2026-04-02)
+
+
+### Bug Fixes
+
+* show current subtype color in alerts editor ([#63](https://github.com/kriziw/VATSIM-Monitor/issues/63)) ([72dbe57](https://github.com/kriziw/VATSIM-Monitor/commit/72dbe57b7ce9a93b0bc55a6182925ecb1f102625))
+
 ## [0.10.5](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.4...v0.10.5) (2026-04-02)
 
 
