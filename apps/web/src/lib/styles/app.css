@@ -1051,7 +1051,6 @@ textarea {
 }
 
 .color-picker-row__swatch {
-	position: relative;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -1069,15 +1068,22 @@ textarea {
 	width: 100%;
 	height: 100%;
 	border-radius: 10px;
-	background: var(--swatch-color);
 	box-shadow: inset 0 0 0 1px rgba(12, 39, 70, 0.08);
 }
 
 .color-picker-row__native {
 	position: absolute;
-	inset: 0;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	border: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
 	opacity: 0;
-	cursor: pointer;
+	pointer-events: none;
 }
 
 .color-picker-row__hex {

@@ -315,6 +315,19 @@
 		return raw.startsWith("#") ? raw : `#${raw}`;
 	}
 
+	function openColorPicker() {
+		if (!colorInput) {
+			return;
+		}
+
+		if ("showPicker" in colorInput && typeof colorInput.showPicker === "function") {
+			colorInput.showPicker();
+			return;
+		}
+
+		colorInput.click();
+	}
+
 	function inputForField(field: EditorFieldKey): HTMLInputElement | HTMLTextAreaElement | null {
 		if (field === "titleTemplate") {
 			return titleInput;
@@ -636,17 +649,23 @@
 						<label class="compact-editor-field">
 							<span>Embed colour</span>
 							<div class="color-picker-row">
-								<label class="color-picker-row__swatch" style={`--swatch-color: ${colorValue()}`}>
-									<input
-										bind:this={colorInput}
-										class="color-picker-row__native"
-										type="color"
-										value={colorValue()}
-										aria-label="Choose embed colour"
-										on:input={(event) => updateColor(event.currentTarget.value.toUpperCase())}
-									/>
-									<span aria-hidden="true"></span>
-								</label>
+								<button
+									class="color-picker-row__swatch"
+									type="button"
+									aria-label="Choose embed colour"
+									on:click={openColorPicker}
+								>
+									<span aria-hidden="true" style={`background: ${colorValue()}`}></span>
+								</button>
+								<input
+									bind:this={colorInput}
+									class="color-picker-row__native"
+									type="color"
+									value={colorValue()}
+									aria-hidden="true"
+									tabindex="-1"
+									on:input={(event) => updateColor(event.currentTarget.value.toUpperCase())}
+								/>
 								<input
 									class="color-picker-row__hex"
 									placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
