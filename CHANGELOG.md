@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.5](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.4...v0.10.5) (2026-04-02)
+
+
+### Bug Fixes
+
+* submit alert editor config as json ([#61](https://github.com/kriziw/VATSIM-Monitor/issues/61)) ([969bebd](https://github.com/kriziw/VATSIM-Monitor/commit/969bebdef3ee580dc9ca88fb69bdae9844129d59))
+
 ## [0.10.4](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.3...v0.10.4) (2026-04-02)
 
 
