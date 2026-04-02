@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.9.1...v0.10.0) (2026-04-02)
+
+
+### Features
+
+* make alert destinations rule-aware ([#49](https://github.com/kriziw/VATSIM-Monitor/issues/49)) ([105d8b9](https://github.com/kriziw/VATSIM-Monitor/commit/105d8b95f5d2f87a9d7bee2ba7c5ecb4c8041cc9))
+
 ## [0.9.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.9.0...v0.9.1) (2026-03-31)
 
 
