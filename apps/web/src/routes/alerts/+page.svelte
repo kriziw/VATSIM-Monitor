@@ -558,7 +558,6 @@
 								<label class="rule-picker__item">
 									<input
 										type="checkbox"
-										name={`${section.key}Enabled`}
 										checked={editorState[selectedChannel.id][section.key].enabled}
 										on:change={(event) => updateEnabled(section.key, event.currentTarget.checked)}
 									/>
@@ -652,33 +651,11 @@
 						</label>
 					</div>
 
-					{#each templateSections as section}
-						<input
-							type="hidden"
-							name={`${section.key}Enabled`}
-							value={editorState[selectedChannel.id][section.key].enabled ? "on" : ""}
-						/>
-						<input
-							type="hidden"
-							name={`${section.key}TitleTemplate`}
-							value={editorState[selectedChannel.id][section.key].titleTemplate}
-						/>
-						<input
-							type="hidden"
-							name={`${section.key}DescriptionTemplate`}
-							value={editorState[selectedChannel.id][section.key].descriptionTemplate}
-						/>
-						<input
-							type="hidden"
-							name={`${section.key}ContentTemplate`}
-							value={editorState[selectedChannel.id][section.key].contentTemplate}
-						/>
-						<input
-							type="hidden"
-							name={`${section.key}Color`}
-							value={editorState[selectedChannel.id][section.key].color}
-						/>
-					{/each}
+					<input
+						type="hidden"
+						name="configJson"
+						value={JSON.stringify(editorState[selectedChannel.id])}
+					/>
 
 					<div class="button-row compact-row">
 						<button class="button button--primary" type="submit" formaction="?/saveNotificationChannel">
