@@ -344,6 +344,11 @@ textarea {
 	margin-top: 18px;
 }
 
+.monitor-strip--compact {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	max-width: 720px;
+}
+
 .monitor-strip__item {
 	display: grid;
 	gap: 4px;
@@ -470,6 +475,11 @@ textarea {
 	line-height: 1.6;
 }
 
+.compact-lead {
+	margin: 0 0 12px;
+	font-size: 0.95rem;
+}
+
 .focus-panel {
 	gap: 14px;
 }
@@ -511,6 +521,11 @@ textarea {
 .form-grid {
 	display: grid;
 	gap: 14px;
+}
+
+.form-grid--compact {
+	grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1.4fr) auto;
+	align-items: end;
 }
 
 .auth-card label {
@@ -740,13 +755,30 @@ textarea {
 	padding-top: 4px;
 }
 
+.template-detail--compact {
+	gap: 8px;
+}
+
 .template-detail strong {
 	color: var(--navy);
+}
+
+.template-detail__head {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 8px;
+	align-items: baseline;
 }
 
 .template-variable-list {
 	display: grid;
 	gap: 10px;
+}
+
+.template-variable-list--compact {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
 }
 
 .template-variable-row {
@@ -766,6 +798,7 @@ textarea {
 .template-variable-row span {
 	color: var(--muted);
 	line-height: 1.5;
+	font-size: 0.9rem;
 }
 
 .block-palette,
@@ -937,7 +970,22 @@ textarea {
 }
 
 .alert-template-note {
-	margin-top: 14px;
+	margin: 0;
+}
+
+.alert-overview-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+	gap: 16px;
+}
+
+.template-toolbar {
+	display: grid;
+	gap: 8px;
+}
+
+.compact-note {
+	font-size: 0.88rem;
 }
 
 .alerts-workspace {
@@ -1005,6 +1053,15 @@ textarea {
 	line-height: 1.5;
 }
 
+.rule-picker--compact {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rule-picker--compact .rule-picker__item,
+.subtype-toggle-grid--compact .rule-picker__item {
+	padding: 12px 14px;
+}
+
 .compact-editor-grid {
 	display: grid;
 	gap: 14px;
@@ -1040,7 +1097,7 @@ textarea {
 }
 
 .compact-editor-field--large textarea {
-	min-height: 180px;
+	min-height: 140px;
 }
 
 .color-picker-row {
@@ -1094,6 +1151,10 @@ textarea {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
+}
+
+.token-board--compact {
+	gap: 8px;
 }
 
 .token-chip {
@@ -1170,7 +1231,11 @@ textarea {
 	}
 
 	.alert-config-grid,
-	.subtype-toggle-grid {
+	.subtype-toggle-grid,
+	.alert-overview-grid,
+	.rule-picker--compact,
+	.template-variable-list--compact,
+	.form-grid--compact {
 		grid-template-columns: 1fr;
 	}
 
