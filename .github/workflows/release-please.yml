@@ -14,12 +14,29 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - name: Run Release Please
+        id: release_please_primary
+        continue-on-error: true
+        uses: googleapis/release-please-action@v4.4.0
         with:
           # this assumes that you have created a personal access token
           # (PAT) and configured it as a GitHub action secret named
           # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-          # this is a built-in strategy in release-please, see "Action Inputs"
-          # for more options
-          release-type: simple
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Retry Release Please once
+        if: steps.release_please_primary.outcome == 'failure'
+        id: release_please_retry
+        uses: googleapis/release-please-action@v4.4.0
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Fail if both attempts fail
+        if: steps.release_please_primary.outcome == 'failure' && steps.release_please_retry.outcome == 'failure'
+        run: |
+          echo "Release Please failed twice. Check the workflow logs for the upstream GitHub/API error."
+          exit 1
