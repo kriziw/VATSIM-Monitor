@@ -37,6 +37,24 @@ function readDiscordConfig(form: FormData): PartialDiscordNotificationChannelCon
 	};
 }
 
+function readDiscordConfigJson(form: FormData): PartialDiscordNotificationChannelConfig | undefined {
+	const raw = form.get("configJson");
+	if (typeof raw !== "string" || raw.trim().length === 0) {
+		return undefined;
+	}
+
+	try {
+		const parsed = JSON.parse(raw) as PartialDiscordNotificationChannelConfig;
+		if (!parsed || typeof parsed !== "object") {
+			return undefined;
+		}
+
+		return parsed;
+	} catch {
+		return undefined;
+	}
+}
+
 function readSelectedWatchRuleIds(form: FormData): string[] {
 	return form
 		.getAll("watchRuleIds")
@@ -114,7 +132,7 @@ export const actions = {
 		const destination = String(form.get("destination") || "").trim();
 		const selectedTemplate = readSelectedTemplate(form);
 		const watchRuleIds = readSelectedWatchRuleIds(form);
-		const config = readDiscordConfig(form);
+		const config = readDiscordConfigJson(form) ?? readDiscordConfig(form);
 
 		try {
 			await updateNotificationChannel(sessionId, id, {
