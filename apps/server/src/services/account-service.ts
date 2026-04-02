@@ -125,9 +125,24 @@ function mergeDiscordConfig(
 	}
 
 	return normalizeDiscordConfig({
-		controllerOnline: update.controllerOnline ?? base.controllerOnline,
-		controllerOffline: update.controllerOffline ?? base.controllerOffline,
-		controllerChange: update.controllerChange ?? base.controllerChange
+		controllerOnline: update.controllerOnline
+			? {
+					...base.controllerOnline,
+					...update.controllerOnline
+				}
+			: base.controllerOnline,
+		controllerOffline: update.controllerOffline
+			? {
+					...base.controllerOffline,
+					...update.controllerOffline
+				}
+			: base.controllerOffline,
+		controllerChange: update.controllerChange
+			? {
+					...base.controllerChange,
+					...update.controllerChange
+				}
+			: base.controllerChange
 	});
 }
 
