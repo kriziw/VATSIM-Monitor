@@ -1050,13 +1050,33 @@ textarea {
 	align-items: center;
 }
 
-.color-picker-row__native {
+.color-picker-row__swatch {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	width: 52px;
 	height: 52px;
 	padding: 4px;
 	border-radius: 14px;
 	border: 1px solid var(--line);
 	background: rgba(255, 255, 255, 0.96);
+	cursor: pointer;
+}
+
+.color-picker-row__swatch span {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: 10px;
+	background: var(--swatch-color);
+	box-shadow: inset 0 0 0 1px rgba(12, 39, 70, 0.08);
+}
+
+.color-picker-row__native {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
 	cursor: pointer;
 }
 

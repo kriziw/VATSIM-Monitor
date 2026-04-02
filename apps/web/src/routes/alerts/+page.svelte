@@ -231,6 +231,7 @@
 	let titleInput: HTMLInputElement | null = null;
 	let descriptionInput: HTMLTextAreaElement | null = null;
 	let contentInput: HTMLTextAreaElement | null = null;
+	let colorInput: HTMLInputElement | null = null;
 
 	$: selectedChannel =
 		data.notificationChannels.find((channel: NotificationChannel) => channel.id === selectedChannelId) ??
@@ -635,12 +636,17 @@
 						<label class="compact-editor-field">
 							<span>Embed colour</span>
 							<div class="color-picker-row">
-								<input
-									class="color-picker-row__native"
-									type="color"
-									value={colorValue()}
-									on:input={(event) => updateColor(event.currentTarget.value.toUpperCase())}
-								/>
+								<label class="color-picker-row__swatch" style={`--swatch-color: ${colorValue()}`}>
+									<input
+										bind:this={colorInput}
+										class="color-picker-row__native"
+										type="color"
+										value={colorValue()}
+										aria-label="Choose embed colour"
+										on:input={(event) => updateColor(event.currentTarget.value.toUpperCase())}
+									/>
+									<span aria-hidden="true"></span>
+								</label>
 								<input
 									class="color-picker-row__hex"
 									placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
