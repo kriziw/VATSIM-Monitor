@@ -439,7 +439,7 @@
 		<div class="section-heading">
 			<h2>Destinations</h2>
 		</div>
-		<p class="muted compact-lead">Create one destination per webhook, then pick it below to edit its rules and templates.</p>
+		<p class="muted compact-lead">Create one destination per webhook, then pick it below to edit its linked rules and alert templates.</p>
 
 		{#if form?.section === "notificationChannels"}
 			<div class="form-error">{form.message}</div>
@@ -530,6 +530,7 @@
 							/>
 						</label>
 					</div>
+					<p class="muted compact-note">A destination sends all enabled alert types for the rules selected below.</p>
 
 					<div class="alert-overview-grid">
 						<div class="template-detail">
