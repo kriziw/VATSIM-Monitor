@@ -413,10 +413,11 @@
 </svelte:head>
 
 <section class="dashboard-hero dashboard-hero--single">
-	<div class="panel dashboard-hero__main">
-		<div class="eyebrow">Alerts</div>
-		<h1>Manage where Discord alerts go and what they send.</h1>
-		<p>Link a Discord destination to watch rules, then tune online, offline, and change alerts in one place.</p>
+	<div class="panel dashboard-hero__main dashboard-hero__main--compact">
+		<div class="alerts-hero__topline">
+			<div class="eyebrow">Alerts</div>
+			<h1>Discord alert destinations and templates.</h1>
+		</div>
 		<div class="monitor-strip monitor-strip--compact">
 			<div class="monitor-strip__item">
 				<span>Destinations</span>
