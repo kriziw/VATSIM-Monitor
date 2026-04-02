@@ -101,6 +101,31 @@ function coerceDiscordNotificationTemplate(
 	};
 }
 
+function coerceLegacyDiscordNotificationTemplate(
+	raw: unknown,
+	type: DiscordNotificationTemplateType
+): DiscordNotificationTemplate {
+	const defaults = getDefaultDiscordNotificationTemplate(type);
+	const template = raw && typeof raw === "object" ? (raw as Partial<DiscordNotificationTemplate>) : {};
+
+	return {
+		enabled: typeof template.enabled === "boolean" ? template.enabled : defaults.enabled,
+		titleTemplate:
+			typeof template.titleTemplate === "string" && template.titleTemplate.trim().length > 0
+				? template.titleTemplate
+				: defaults.titleTemplate,
+		descriptionTemplate:
+			typeof template.descriptionTemplate === "string" && template.descriptionTemplate.trim().length > 0
+				? template.descriptionTemplate
+				: defaults.descriptionTemplate,
+		contentTemplate:
+			typeof template.contentTemplate === "string" && template.contentTemplate.trim().length > 0
+				? template.contentTemplate
+				: null,
+		color: defaults.color
+	};
+}
+
 export function coerceDiscordNotificationConfig(raw: unknown): DiscordNotificationChannelConfig {
 	const parsed = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
 	const isLegacy =
@@ -111,9 +136,9 @@ export function coerceDiscordNotificationConfig(raw: unknown): DiscordNotificati
 
 	if (isLegacy) {
 		return {
-			controllerOnline: coerceDiscordNotificationTemplate(parsed, "controllerOnline"),
-			controllerOffline: coerceDiscordNotificationTemplate(parsed, "controllerOffline"),
-			controllerChange: coerceDiscordNotificationTemplate(parsed, "controllerChange")
+			controllerOnline: coerceLegacyDiscordNotificationTemplate(parsed, "controllerOnline"),
+			controllerOffline: coerceLegacyDiscordNotificationTemplate(parsed, "controllerOffline"),
+			controllerChange: coerceLegacyDiscordNotificationTemplate(parsed, "controllerChange")
 		};
 	}
 
