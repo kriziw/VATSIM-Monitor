@@ -29,6 +29,7 @@ jobs:
       - name: Retry Release Please once
         if: steps.release_please_primary.outcome == 'failure'
         id: release_please_retry
+        continue-on-error: true
         uses: googleapis/release-please-action@v4.4.0
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -36,7 +37,7 @@ jobs:
           manifest-file: .release-please-manifest.json
 
       - name: Fail if both attempts fail
-        if: steps.release_please_primary.outcome == 'failure' && steps.release_please_retry.outcome == 'failure'
+        if: always() && steps.release_please_primary.outcome == 'failure' && steps.release_please_retry.outcome == 'failure'
         run: |
           echo "Release Please failed twice. Check the workflow logs for the upstream GitHub/API error."
           exit 1
