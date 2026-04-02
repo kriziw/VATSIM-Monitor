@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.0...v0.10.1) (2026-04-02)
+
+
+### Bug Fixes
+
+* preserve subtype template fields on alert saves ([#51](https://github.com/kriziw/VATSIM-Monitor/issues/51)) ([19e18a3](https://github.com/kriziw/VATSIM-Monitor/commit/19e18a305bf00eb7016d0841d7db78a22e8e5e43))
+
 ## [0.10.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.9.1...v0.10.0) (2026-04-02)
 
 
