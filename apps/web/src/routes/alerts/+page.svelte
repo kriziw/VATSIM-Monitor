@@ -652,10 +652,10 @@
 									class="color-picker-row__swatch"
 									type="button"
 									aria-label="Choose embed colour"
+									title={colorValue()}
+									style={`background: ${colorValue()}`}
 									on:click={openColorPicker}
-								>
-									<span aria-hidden="true" style={`background: ${colorValue()}`}></span>
-								</button>
+								></button>
 								<input
 									bind:this={colorInput}
 									class="color-picker-row__native"
