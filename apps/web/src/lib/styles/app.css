@@ -965,6 +965,46 @@ textarea {
 	margin-top: 18px;
 }
 
+.alert-config-grid,
+.subtype-toggle-grid,
+.rule-picker {
+	display: grid;
+	gap: 14px;
+}
+
+.alert-config-grid,
+.subtype-toggle-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rule-picker__item {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	padding: 14px 16px;
+	border-radius: 16px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.72);
+}
+
+.rule-picker__item input {
+	margin-top: 3px;
+}
+
+.rule-picker__item div {
+	display: grid;
+	gap: 4px;
+}
+
+.rule-picker__item strong {
+	color: var(--navy);
+}
+
+.rule-picker__item span {
+	color: var(--muted);
+	line-height: 1.5;
+}
+
 .compact-editor-grid {
 	display: grid;
 	gap: 14px;
@@ -1100,6 +1140,11 @@ textarea {
 	.template-guide,
 	.template-section-grid,
 	.alerts-workspace {
+		grid-template-columns: 1fr;
+	}
+
+	.alert-config-grid,
+	.subtype-toggle-grid {
 		grid-template-columns: 1fr;
 	}
 

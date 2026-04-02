@@ -4,6 +4,7 @@ import type {
 	AuthenticatedSession,
 	ControllerEvent,
 	DiscordNotificationChannelConfig,
+	PartialDiscordNotificationChannelConfig,
 	MonitorSnapshot,
 	MonitorStatus,
 	NotificationChannel,
@@ -18,6 +19,10 @@ export interface AuthResponse {
 export interface DashboardResponse {
 	watchRules: WatchRule[];
 	notificationChannels: NotificationChannel[];
+}
+
+export interface DeleteWatchRuleResponse {
+	detachedAlertCount: number;
 }
 
 function getApiBaseUrl(): string {
@@ -159,7 +164,7 @@ export async function updateWatchRule(
 export async function deleteWatchRule(sessionId: string, id: string) {
 	return requestWithSession(sessionId, `/api/v1/watch-rules/${id}`, {
 		method: "DELETE"
-	});
+	}) as Promise<DeleteWatchRuleResponse>;
 }
 
 export async function createNotificationChannel(
@@ -168,7 +173,8 @@ export async function createNotificationChannel(
 		destination: string;
 		displayName: string;
 		type: "discord_webhook";
-		config?: Partial<DiscordNotificationChannelConfig>;
+		config?: PartialDiscordNotificationChannelConfig;
+		watchRuleIds?: string[];
 	}
 ) {
 	return requestWithSession(sessionId, "/api/v1/notification-channels", {
@@ -183,8 +189,9 @@ export async function updateNotificationChannel(
 	body: {
 		displayName?: string;
 		destination?: string;
-		config?: Partial<DiscordNotificationChannelConfig> | null;
+		config?: PartialDiscordNotificationChannelConfig | null;
 		isActive?: boolean;
+		watchRuleIds?: string[];
 	}
 ) {
 	return requestWithSession(sessionId, `/api/v1/notification-channels/${id}`, {
@@ -193,7 +200,8 @@ export async function updateNotificationChannel(
 			displayName: typeof body.displayName === "string" ? body.displayName : null,
 			destination: typeof body.destination === "string" ? body.destination : null,
 			config: Object.prototype.hasOwnProperty.call(body, "config") ? body.config ?? null : undefined,
-			isActive: typeof body.isActive === "boolean" ? body.isActive : null
+			isActive: typeof body.isActive === "boolean" ? body.isActive : null,
+			watchRuleIds: Array.isArray(body.watchRuleIds) ? body.watchRuleIds : undefined
 		}
 	});
 }

@@ -7,6 +7,7 @@ import {
 import { fail, redirect, type Cookies } from "@sveltejs/kit";
 import type {
 	DiscordNotificationChannelConfig,
+	PartialDiscordNotificationChannelConfig,
 	DiscordNotificationTemplateType
 } from "@vatsim-monitor/domain";
 import type { Actions, PageServerLoad } from "./$types";
@@ -20,11 +21,20 @@ function readDiscordTemplate(
 	prefix: DiscordNotificationTemplateType
 ): DiscordNotificationChannelConfig["controllerOnline"] {
 	return {
+		enabled: form.get(`${prefix}Enabled`) === "on",
 		titleTemplate: String(form.get(`${prefix}TitleTemplate`) || ""),
 		descriptionTemplate: String(form.get(`${prefix}DescriptionTemplate`) || ""),
 		contentTemplate: String(form.get(`${prefix}ContentTemplate`) || ""),
 		color: String(form.get(`${prefix}Color`) || "")
 	};
+}
+
+function readSelectedWatchRuleIds(form: FormData): string[] {
+	return form
+		.getAll("watchRuleIds")
+		.filter((value): value is string => typeof value === "string")
+		.map((value) => value.trim())
+		.filter((value) => value.length > 0);
 }
 
 function readSelectedTemplate(form: FormData): DiscordNotificationTemplateType {
@@ -45,7 +55,8 @@ export const load = (async ({ locals }) => {
 
 	return {
 		session: locals.session,
-		notificationChannels: dashboardData.notificationChannels
+		notificationChannels: dashboardData.notificationChannels,
+		watchRules: dashboardData.watchRules
 	};
 }) satisfies PageServerLoad;
 
@@ -59,13 +70,15 @@ export const actions = {
 		const form = await request.formData();
 		const displayName = String(form.get("displayName") || "");
 		const destination = String(form.get("destination") || "");
+		const watchRuleIds = readSelectedWatchRuleIds(form);
 
 		try {
 			await createNotificationChannel(sessionId, {
 				type: "discord_webhook",
 				displayName,
 				destination,
-				config: undefined
+				config: undefined,
+				watchRuleIds
 			});
 			return { success: true };
 		} catch (error: any) {
@@ -88,7 +101,17 @@ export const actions = {
 		const displayName = String(form.get("displayName") || "");
 		const destination = String(form.get("destination") || "").trim();
 		const selectedTemplate = readSelectedTemplate(form);
-		const config: Partial<DiscordNotificationChannelConfig> = {
+		const watchRuleIds = readSelectedWatchRuleIds(form);
+		const config: PartialDiscordNotificationChannelConfig = {
+			controllerOnline: {
+				enabled: form.get("controllerOnlineEnabled") === "on"
+			},
+			controllerOffline: {
+				enabled: form.get("controllerOfflineEnabled") === "on"
+			},
+			controllerChange: {
+				enabled: form.get("controllerChangeEnabled") === "on"
+			},
 			[selectedTemplate]: readDiscordTemplate(form, selectedTemplate)
 		};
 
@@ -96,7 +119,8 @@ export const actions = {
 			await updateNotificationChannel(sessionId, id, {
 				displayName,
 				destination: destination.length > 0 ? destination : undefined,
-				config
+				config,
+				watchRuleIds
 			});
 			return { success: true };
 		} catch (error: any) {
@@ -107,6 +131,7 @@ export const actions = {
 				message: error?.body?.message ?? error?.message ?? "Unable to save notification settings.",
 				displayName,
 				destination,
+				watchRuleIds,
 				config
 			});
 		}

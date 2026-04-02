@@ -18,6 +18,11 @@ interface NotificationChannelRow extends RowDataPacket {
 	created_at: Date;
 }
 
+interface NotificationChannelWatchRuleRow extends RowDataPacket {
+	channel_id: string;
+	watch_rule_id: string;
+}
+
 function maskDiscordWebhook(destination: string): string {
 	const match = destination.match(/^(https:\/\/discord\.com\/api\/webhooks\/)(\d+)\/([A-Za-z0-9_-]+)$/);
 	if (!match) {
@@ -40,7 +45,10 @@ function parseDiscordConfig(raw: unknown): DiscordNotificationChannelConfig {
 	}
 }
 
-function mapNotificationChannel(row: NotificationChannelRow): NotificationChannel {
+function mapNotificationChannel(
+	row: NotificationChannelRow,
+	watchRuleIds: string[]
+): NotificationChannel {
 	return {
 		id: row.id,
 		userId: row.user_id,
@@ -49,6 +57,7 @@ function mapNotificationChannel(row: NotificationChannelRow): NotificationChanne
 		destination: "",
 		destinationMasked: maskDiscordWebhook(row.destination),
 		config: row.type === "discord_webhook" ? parseDiscordConfig(row.config_json) : null,
+		watchRuleIds,
 		isActive: row.is_active === 1,
 		createdAt: row.created_at.toISOString()
 	};
@@ -60,6 +69,7 @@ export interface CreateNotificationChannelInput {
 	displayName: string | null;
 	destination: string;
 	config?: DiscordNotificationChannelConfig | null;
+	watchRuleIds?: string[];
 }
 
 export interface UpdateNotificationChannelInput {
@@ -69,10 +79,59 @@ export interface UpdateNotificationChannelInput {
 	destination?: string;
 	config?: DiscordNotificationChannelConfig | null;
 	isActive?: boolean;
+	watchRuleIds?: string[];
 }
 
 export class NotificationChannelStore {
 	constructor(private readonly pool: Pool) {}
+
+	private async listWatchRuleIdsForChannels(channelIds: string[]): Promise<Map<string, string[]>> {
+		const watchRuleIdsByChannelId = new Map<string, string[]>();
+		for (const channelId of channelIds) {
+			watchRuleIdsByChannelId.set(channelId, []);
+		}
+
+		if (channelIds.length === 0) {
+			return watchRuleIdsByChannelId;
+		}
+
+		const placeholders = channelIds.map(() => "?").join(", ");
+		const [rows] = await this.pool.execute<NotificationChannelWatchRuleRow[]>(
+			`SELECT channel_id, watch_rule_id
+			 FROM notification_channel_watch_rules
+			 WHERE channel_id IN (${placeholders})
+			 ORDER BY channel_id ASC, watch_rule_id ASC`,
+			channelIds
+		);
+
+		for (const row of rows) {
+			const current = watchRuleIdsByChannelId.get(row.channel_id);
+			if (current) {
+				current.push(row.watch_rule_id);
+				continue;
+			}
+
+			watchRuleIdsByChannelId.set(row.channel_id, [row.watch_rule_id]);
+		}
+
+		return watchRuleIdsByChannelId;
+	}
+
+	private async replaceWatchRuleIds(channelId: string, watchRuleIds: string[]): Promise<void> {
+		await this.pool.execute("DELETE FROM notification_channel_watch_rules WHERE channel_id = ?", [channelId]);
+
+		if (watchRuleIds.length === 0) {
+			return;
+		}
+
+		const placeholders = watchRuleIds.map(() => "(?, ?)").join(", ");
+		const values = watchRuleIds.flatMap((watchRuleId) => [channelId, watchRuleId]);
+		await this.pool.execute(
+			`INSERT INTO notification_channel_watch_rules (channel_id, watch_rule_id)
+			 VALUES ${placeholders}`,
+			values
+		);
+	}
 
 	public async listForUser(userId: string): Promise<NotificationChannel[]> {
 		const [rows] = await this.pool.execute<NotificationChannelRow[]>(
@@ -83,7 +142,8 @@ export class NotificationChannelStore {
 			[userId]
 		);
 
-		return rows.map(mapNotificationChannel);
+		const watchRuleIdsByChannelId = await this.listWatchRuleIdsForChannels(rows.map((row) => row.id));
+		return rows.map((row) => mapNotificationChannel(row, watchRuleIdsByChannelId.get(row.id) ?? []));
 	}
 
 	public async create(input: CreateNotificationChannelInput): Promise<NotificationChannel> {
@@ -100,6 +160,7 @@ export class NotificationChannelStore {
 				input.config ? JSON.stringify(input.config) : null
 			]
 		);
+		await this.replaceWatchRuleIds(id, input.watchRuleIds ?? []);
 
 		const created = await this.getById(id, input.userId);
 		if (!created) {
@@ -122,7 +183,8 @@ export class NotificationChannelStore {
 			return null;
 		}
 
-		return mapNotificationChannel(rows[0]);
+		const watchRuleIdsByChannelId = await this.listWatchRuleIdsForChannels([rows[0].id]);
+		return mapNotificationChannel(rows[0], watchRuleIdsByChannelId.get(rows[0].id) ?? []);
 	}
 
 	public async getByDestination(userId: string, destination: string): Promise<NotificationChannel | null> {
@@ -138,7 +200,8 @@ export class NotificationChannelStore {
 			return null;
 		}
 
-		return mapNotificationChannel(rows[0]);
+		const watchRuleIdsByChannelId = await this.listWatchRuleIdsForChannels([rows[0].id]);
+		return mapNotificationChannel(rows[0], watchRuleIdsByChannelId.get(rows[0].id) ?? []);
 	}
 
 	public async update(input: UpdateNotificationChannelInput): Promise<NotificationChannel | null> {
@@ -166,6 +229,10 @@ export class NotificationChannelStore {
 		}
 
 		if (updates.length === 0) {
+			if (Array.isArray(input.watchRuleIds)) {
+				await this.replaceWatchRuleIds(input.id, input.watchRuleIds);
+			}
+
 			return this.getById(input.id, input.userId);
 		}
 
@@ -177,7 +244,23 @@ export class NotificationChannelStore {
 			values
 		);
 
+		if (Array.isArray(input.watchRuleIds)) {
+			await this.replaceWatchRuleIds(input.id, input.watchRuleIds);
+		}
+
 		return this.getById(input.id, input.userId);
+	}
+
+	public async countByWatchRuleId(userId: string, watchRuleId: string): Promise<number> {
+		const [rows] = await this.pool.execute<Array<RowDataPacket & { total: number }>>(
+			`SELECT COUNT(*) AS total
+			 FROM notification_channel_watch_rules ncr
+			 INNER JOIN notification_channels nc ON nc.id = ncr.channel_id
+			 WHERE ncr.watch_rule_id = ? AND nc.user_id = ?`,
+			[watchRuleId, userId]
+		);
+
+		return Number(rows[0]?.total ?? 0);
 	}
 
 	public async delete(id: string, userId: string): Promise<void> {
