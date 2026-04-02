@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.8](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.7...v0.10.8) (2026-04-02)
+
+
+### Bug Fixes
+
+* clarify alert destination messaging ([#68](https://github.com/kriziw/VATSIM-Monitor/issues/68)) ([1215150](https://github.com/kriziw/VATSIM-Monitor/commit/12151509d9348442a315558a5fa9cadcbb492f14))
+
 ## [0.10.7](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.6...v0.10.7) (2026-04-02)
 
 
