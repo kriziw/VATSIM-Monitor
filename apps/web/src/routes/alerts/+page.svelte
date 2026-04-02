@@ -593,7 +593,6 @@
 							<span>Title</span>
 							<input
 								bind:this={titleInput}
-								name={`${selectedTemplate}TitleTemplate`}
 								value={activeTemplateState.titleTemplate}
 								on:focus={() => {
 									activeField = "titleTemplate";
@@ -608,7 +607,6 @@
 							<span>Description</span>
 							<textarea
 								bind:this={descriptionInput}
-								name={`${selectedTemplate}DescriptionTemplate`}
 								rows="8"
 								value={activeTemplateState.descriptionTemplate}
 								on:focus={() => {
@@ -624,7 +622,6 @@
 							<span>Additional content</span>
 							<textarea
 								bind:this={contentInput}
-								name={`${selectedTemplate}ContentTemplate`}
 								rows="3"
 								value={activeTemplateState.contentTemplate}
 								on:focus={() => {
@@ -647,7 +644,6 @@
 								/>
 								<input
 									class="color-picker-row__hex"
-									name={`${selectedTemplate}Color`}
 									placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
 									value={activeTemplateState.color}
 									on:input={(event) => updateColor(event.currentTarget.value)}
@@ -655,6 +651,34 @@
 							</div>
 						</label>
 					</div>
+
+					{#each templateSections as section}
+						<input
+							type="hidden"
+							name={`${section.key}Enabled`}
+							value={editorState[selectedChannel.id][section.key].enabled ? "on" : ""}
+						/>
+						<input
+							type="hidden"
+							name={`${section.key}TitleTemplate`}
+							value={editorState[selectedChannel.id][section.key].titleTemplate}
+						/>
+						<input
+							type="hidden"
+							name={`${section.key}DescriptionTemplate`}
+							value={editorState[selectedChannel.id][section.key].descriptionTemplate}
+						/>
+						<input
+							type="hidden"
+							name={`${section.key}ContentTemplate`}
+							value={editorState[selectedChannel.id][section.key].contentTemplate}
+						/>
+						<input
+							type="hidden"
+							name={`${section.key}Color`}
+							value={editorState[selectedChannel.id][section.key].color}
+						/>
+					{/each}
 
 					<div class="button-row compact-row">
 						<button class="button button--primary" type="submit" formaction="?/saveNotificationChannel">

@@ -29,6 +29,14 @@ function readDiscordTemplate(
 	};
 }
 
+function readDiscordConfig(form: FormData): PartialDiscordNotificationChannelConfig {
+	return {
+		controllerOnline: readDiscordTemplate(form, "controllerOnline"),
+		controllerOffline: readDiscordTemplate(form, "controllerOffline"),
+		controllerChange: readDiscordTemplate(form, "controllerChange")
+	};
+}
+
 function readSelectedWatchRuleIds(form: FormData): string[] {
 	return form
 		.getAll("watchRuleIds")
@@ -106,18 +114,7 @@ export const actions = {
 		const destination = String(form.get("destination") || "").trim();
 		const selectedTemplate = readSelectedTemplate(form);
 		const watchRuleIds = readSelectedWatchRuleIds(form);
-		const config: PartialDiscordNotificationChannelConfig = {
-			controllerOnline: {
-				enabled: form.get("controllerOnlineEnabled") === "on"
-			},
-			controllerOffline: {
-				enabled: form.get("controllerOfflineEnabled") === "on"
-			},
-			controllerChange: {
-				enabled: form.get("controllerChangeEnabled") === "on"
-			},
-			[selectedTemplate]: readDiscordTemplate(form, selectedTemplate)
-		};
+		const config = readDiscordConfig(form);
 
 		try {
 			await updateNotificationChannel(sessionId, id, {
