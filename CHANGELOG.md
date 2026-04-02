@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.10.4](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.3...v0.10.4) (2026-04-02)
+
+
+### Bug Fixes
+
+* let release please retry complete before failing ([#59](https://github.com/kriziw/VATSIM-Monitor/issues/59)) ([caa56d9](https://github.com/kriziw/VATSIM-Monitor/commit/caa56d98147ca82cf19cc25dfb3e45cac1f3220e))
+* retry release please after transient github errors ([#58](https://github.com/kriziw/VATSIM-Monitor/issues/58)) ([e2c4147](https://github.com/kriziw/VATSIM-Monitor/commit/e2c4147c7dacc3fa6736abdec9f88e956048237d))
+* submit the full alert config on save ([#57](https://github.com/kriziw/VATSIM-Monitor/issues/57)) ([f3f4d7f](https://github.com/kriziw/VATSIM-Monitor/commit/f3f4d7f331bdd045cbf6cbbcb463cda7d7cd74bf))
+
 ## [0.10.3](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.2...v0.10.3) (2026-04-02)
 
 
