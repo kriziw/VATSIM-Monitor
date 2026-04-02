@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.7](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.6...v0.10.7) (2026-04-02)
+
+
+### Bug Fixes
+
+* render alert color swatch from editor state ([#65](https://github.com/kriziw/VATSIM-Monitor/issues/65)) ([8629e3f](https://github.com/kriziw/VATSIM-Monitor/commit/8629e3f7816e44848a0827c23b91d966af193408))
+
 ## [0.10.6](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.5...v0.10.6) (2026-04-02)
 
 
