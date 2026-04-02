@@ -73,14 +73,18 @@ export const actions = {
 		const watchRuleIds = readSelectedWatchRuleIds(form);
 
 		try {
-			await createNotificationChannel(sessionId, {
+			const channel = await createNotificationChannel(sessionId, {
 				type: "discord_webhook",
 				displayName,
 				destination,
 				config: undefined,
 				watchRuleIds
 			});
-			return { success: true };
+			return {
+				success: true,
+				channelId: channel.id,
+				selectedTemplate: "controllerOnline"
+			};
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "notificationChannels",
@@ -122,7 +126,11 @@ export const actions = {
 				config,
 				watchRuleIds
 			});
-			return { success: true };
+			return {
+				success: true,
+				channelId: id,
+				selectedTemplate
+			};
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "notificationChannels",
@@ -149,7 +157,11 @@ export const actions = {
 
 		try {
 			await updateNotificationChannel(sessionId, id, { isActive });
-			return { success: true };
+			return {
+				success: true,
+				channelId: id,
+				selectedTemplate
+			};
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "notificationChannels",
@@ -171,7 +183,9 @@ export const actions = {
 
 		try {
 			await deleteNotificationChannel(sessionId, id);
-			return { success: true };
+			return {
+				success: true
+			};
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "notificationChannels",
