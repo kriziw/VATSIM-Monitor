@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.1...v0.10.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* preserve alert editor selection after save ([#53](https://github.com/kriziw/VATSIM-Monitor/issues/53)) ([f47a057](https://github.com/kriziw/VATSIM-Monitor/commit/f47a057ca84225e2aca0bae0e960f6d03fddb010))
+
 ## [0.10.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.0...v0.10.1) (2026-04-02)
 
 
