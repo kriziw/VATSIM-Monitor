@@ -23,6 +23,7 @@
 		| "{{statusLabel}}";
 
 	type TemplateEditorState = {
+		enabled: boolean;
 		color: string;
 		contentTemplate: string;
 		descriptionTemplate: string;
@@ -41,7 +42,7 @@
 			key: "controllerOnline",
 			tabLabel: "Online",
 			title: "Controller coming online",
-			description: "Use this when a watched position was previously empty and is now staffed.",
+			description: "Sent when a selected watched position was previously empty and is now staffed.",
 			exampleLabel: "Example: EGLL_TWR has just come online.",
 			variables: [
 				"{{callsign}}",
@@ -57,7 +58,7 @@
 			key: "controllerOffline",
 			tabLabel: "Offline",
 			title: "Controller going offline",
-			description: "Use this when a watched position was staffed and is now empty.",
+			description: "Sent when a selected watched position was previously staffed and is now empty.",
 			exampleLabel: "Example: EGLL_TWR has just gone offline.",
 			variables: [
 				"{{callsign}}",
@@ -73,8 +74,7 @@
 			key: "controllerChange",
 			tabLabel: "Change",
 			title: "Controller change",
-			description:
-				"Use this when the same watched position changes to a different controller within roughly 30 seconds.",
+			description: "Sent when the same selected watched position changes to a different controller within roughly 30 seconds.",
 			exampleLabel: "Example: EGLL_TWR changes from one controller to another.",
 			variables: [
 				"{{callsign}}",
@@ -147,12 +147,14 @@
 		const config = channel.config ?? getDefaultDiscordNotificationConfig();
 		return {
 			controllerOnline: {
+				enabled: config.controllerOnline.enabled,
 				titleTemplate: config.controllerOnline.titleTemplate,
 				descriptionTemplate: config.controllerOnline.descriptionTemplate,
 				contentTemplate: config.controllerOnline.contentTemplate ?? "",
 				color: config.controllerOnline.color ?? getDefaultDiscordNotificationTemplate("controllerOnline").color ?? "#1C7F58"
 			},
 			controllerOffline: {
+				enabled: config.controllerOffline.enabled,
 				titleTemplate: config.controllerOffline.titleTemplate,
 				descriptionTemplate: config.controllerOffline.descriptionTemplate,
 				contentTemplate: config.controllerOffline.contentTemplate ?? "",
@@ -162,6 +164,7 @@
 					"#AA4D24"
 			},
 			controllerChange: {
+				enabled: config.controllerChange.enabled,
 				titleTemplate: config.controllerChange.titleTemplate,
 				descriptionTemplate: config.controllerChange.descriptionTemplate,
 				contentTemplate: config.controllerChange.contentTemplate ?? "",
@@ -177,6 +180,13 @@
 		return Object.fromEntries(channels.map((channel) => [channel.id, buildTemplateState(channel)])) as Record<
 			string,
 			Record<DiscordNotificationTemplateType, TemplateEditorState>
+		>;
+	}
+
+	function buildWatchRuleSelections(channels: NotificationChannel[]) {
+		return Object.fromEntries(channels.map((channel) => [channel.id, [...channel.watchRuleIds]])) as Record<
+			string,
+			string[]
 		>;
 	}
 
@@ -208,9 +218,14 @@
 		return channel.displayName ?? "";
 	}
 
+	function isRuleSelected(channelId: string, watchRuleId: string): boolean {
+		return (watchRuleSelections[channelId] ?? []).includes(watchRuleId);
+	}
+
 	let selectedChannelId = findInitialChannelId();
 	let selectedTemplate = findInitialTemplate();
 	let editorState = buildEditorState(data.notificationChannels);
+	let watchRuleSelections = buildWatchRuleSelections(data.notificationChannels);
 	let activeField: EditorFieldKey = "descriptionTemplate";
 
 	let titleInput: HTMLInputElement | null = null;
@@ -261,6 +276,33 @@
 			...activeTemplateState,
 			color: value
 		});
+	}
+
+	function updateEnabled(templateType: DiscordNotificationTemplateType, enabled: boolean) {
+		if (!selectedChannel) {
+			return;
+		}
+
+		const templateState = editorState[selectedChannel.id]?.[templateType];
+		if (!templateState) {
+			return;
+		}
+
+		setTemplateState(selectedChannel.id, templateType, {
+			...templateState,
+			enabled
+		});
+	}
+
+	function toggleWatchRule(channelId: string, watchRuleId: string, checked: boolean) {
+		const current = watchRuleSelections[channelId] ?? [];
+		const next = checked
+			? [...current, watchRuleId]
+			: current.filter((candidate) => candidate !== watchRuleId);
+		watchRuleSelections = {
+			...watchRuleSelections,
+			[channelId]: [...new Set(next)]
+		};
 	}
 
 	function colorValue(): string {
@@ -359,24 +401,24 @@
 <section class="dashboard-hero dashboard-hero--single">
 	<div class="panel dashboard-hero__main">
 		<div class="eyebrow">Alerts</div>
-		<h1>Build Discord notifications quickly.</h1>
-		<p>Select a channel, choose an alert type, then edit the preloaded title and description. Drag variables from the side panel into the field you are working on and watch the preview update immediately.</p>
+		<h1>Manage where Discord alerts go and what they send.</h1>
+		<p>Create a Discord destination once, then choose which watch rules it should follow and which alert types it should send.</p>
 		<div class="monitor-strip">
 			<div class="monitor-strip__item">
-				<span>Channels</span>
+				<span>Destinations</span>
 				<strong>{data.notificationChannels.length}</strong>
+			</div>
+			<div class="monitor-strip__item">
+				<span>Rules</span>
+				<strong>{data.watchRules.length}</strong>
 			</div>
 			<div class="monitor-strip__item">
 				<span>Active</span>
 				<strong>{data.notificationChannels.filter((channel) => channel.isActive).length}</strong>
 			</div>
 			<div class="monitor-strip__item">
-				<span>Templates</span>
-				<strong>3 types</strong>
-			</div>
-			<div class="monitor-strip__item">
 				<span>Editing</span>
-				<strong>{activeTemplateSection.title}</strong>
+				<strong>{selectedChannel?.displayName ?? "None"}</strong>
 			</div>
 		</div>
 	</div>
@@ -385,16 +427,16 @@
 <section class="section dashboard-stack">
 	<article class="dashboard-card dashboard-card--wide">
 		<div class="section-heading">
-			<h2>Step 1: Choose a Discord channel</h2>
+			<h2>1. Create or delete alert destinations</h2>
 		</div>
-		<p>The editor below always applies to the currently selected webhook.</p>
+		<p>Create one destination per Discord webhook. Each destination can then be linked to one or more watch rules and configured for online, offline, and change alerts.</p>
 
 		{#if form?.section === "notificationChannels"}
 			<div class="form-error">{form.message}</div>
 		{/if}
 
 		{#if data.notificationChannels.length === 0}
-			<p class="empty-state">No alert channels yet. Add a Discord webhook below to start sending staffing notifications.</p>
+			<p class="empty-state">No alert destinations yet. Add a Discord webhook below to start sending staffing notifications.</p>
 		{:else}
 			<div class="channel-selector">
 				{#each data.notificationChannels as channel}
@@ -406,9 +448,9 @@
 							selectedTemplate = "controllerOnline";
 						}}
 					>
-						<strong>{channel.displayName ?? "Discord webhook"}</strong>
+						<strong>{channel.displayName ?? "Discord destination"}</strong>
 						<span>{channel.destinationMasked}</span>
-						<em>{channel.isActive ? "Active" : "Disabled"}</em>
+						<em>{channel.watchRuleIds.length} rule{channel.watchRuleIds.length === 1 ? "" : "s"} linked</em>
 					</button>
 				{/each}
 			</div>
@@ -425,48 +467,32 @@
 				placeholder="https://discord.com/api/webhooks/..."
 				value={form?.section === "notificationChannels" ? form?.destination ?? "" : ""}
 			/>
-			<button class="button button--primary" type="submit" formaction="?/addNotificationChannel">Add channel</button>
+			<button class="button button--primary" type="submit" formaction="?/addNotificationChannel">Add destination</button>
 		</form>
+
+		{#if selectedChannel}
+			<form class="button-row compact-row" method="post">
+				<input type="hidden" name="id" value={selectedChannel.id} />
+				<input type="hidden" name="selectedTemplate" value={selectedTemplate} />
+				<button class="button button--secondary" type="submit" formaction="?/deleteNotificationChannel">
+					Delete selected destination
+				</button>
+			</form>
+		{/if}
 	</article>
 
 	{#if selectedChannel && activeTemplateState}
 		<article class="dashboard-card dashboard-card--wide">
 			<div class="section-heading">
 				<div>
-					<h2>Step 2: Choose an alert template</h2>
+					<h2>2. Configure the selected destination</h2>
 					<p class="muted alert-editor__subtitle">
-						Editing <strong>{selectedChannel.displayName ?? "Discord webhook"}</strong> for <span class="mono">{selectedChannel.destinationMasked}</span>
+						Editing <strong>{selectedChannel.displayName ?? "Discord destination"}</strong> for <span class="mono">{selectedChannel.destinationMasked}</span>
 					</p>
 				</div>
 				<span class="status-chip {selectedChannel.isActive ? 'status-chip--ok' : 'status-chip--muted'}">
-					{selectedChannel.isActive ? "Channel active" : "Channel disabled"}
+					{selectedChannel.isActive ? "Destination active" : "Destination disabled"}
 				</span>
-			</div>
-
-			<div class="template-selector">
-				{#each templateSections as section}
-					<button
-						class={`template-selector__item ${selectedTemplate === section.key ? "template-selector__item--active" : ""}`}
-						type="button"
-						on:click={() => {
-							selectedTemplate = section.key;
-						}}
-					>
-						<strong>{section.tabLabel}</strong>
-					</button>
-				{/each}
-			</div>
-			<p class="muted alert-template-note">
-				<strong>{activeTemplateSection.title}.</strong> {activeTemplateSection.description}
-			</p>
-		</article>
-
-		<article class="dashboard-card dashboard-card--wide">
-			<div class="section-heading">
-				<div>
-					<h2>Step 3: Edit the selected alert</h2>
-					<p class="muted alert-editor__subtitle">{activeTemplateSection.description}</p>
-				</div>
 			</div>
 
 			<form class="alerts-workspace" method="post">
@@ -475,29 +501,99 @@
 					<input type="hidden" name="selectedTemplate" value={selectedTemplate} />
 					<input type="hidden" name="isActive" value={selectedChannel.isActive ? "false" : "true"} />
 
-					<label>
-						<span>Channel name</span>
-						<input
-							name="displayName"
-							placeholder="Tower alerts"
-							value={channelFieldValue(selectedChannel, "displayName")}
-						/>
-					</label>
+					<div class="alert-config-grid">
+						<label>
+							<span>Destination name</span>
+							<input
+								name="displayName"
+								placeholder="Tower alerts"
+								value={channelFieldValue(selectedChannel, "displayName")}
+							/>
+						</label>
 
-					<label>
-						<span>Replace webhook URL</span>
-						<input
-							name="destination"
-							placeholder="Leave blank to keep the current webhook"
-							value={channelFieldValue(selectedChannel, "destination")}
-						/>
-					</label>
+						<label>
+							<span>Replace webhook URL</span>
+							<input
+								name="destination"
+								placeholder="Leave blank to keep the current webhook"
+								value={channelFieldValue(selectedChannel, "destination")}
+							/>
+						</label>
+					</div>
+
+					<div class="template-detail">
+						<strong>Rule selection</strong>
+						<p class="muted">Choose which watch rules should trigger this destination. If a watch rule is deleted later, it will be removed from this destination automatically.</p>
+						{#if data.watchRules.length === 0}
+							<p class="empty-state">No watch rules exist yet. Add watch rules on Settings before configuring Discord alerts.</p>
+						{:else}
+							<div class="rule-picker">
+								{#each data.watchRules as watchRule}
+									<label class="rule-picker__item">
+										<input
+											type="checkbox"
+											name="watchRuleIds"
+											value={watchRule.id}
+											checked={isRuleSelected(selectedChannel.id, watchRule.id)}
+											on:change={(event) => toggleWatchRule(selectedChannel.id, watchRule.id, event.currentTarget.checked)}
+										/>
+										<div>
+											<strong>{watchRule.pattern}</strong>
+											<span>{watchRule.topdown ? "Top-down enabled" : "Direct matching"}</span>
+										</div>
+									</label>
+								{/each}
+							</div>
+						{/if}
+						{#if (watchRuleSelections[selectedChannel.id] ?? []).length === 0}
+							<p class="muted">This destination is currently unassigned and will not send alerts until at least one watch rule is selected.</p>
+						{/if}
+					</div>
+
+					<div class="template-detail">
+						<strong>Alert types</strong>
+						<p class="muted">Enable or disable each subtype for this destination, then choose one subtype below to edit its message.</p>
+						<div class="subtype-toggle-grid">
+							{#each templateSections as section}
+								<label class="rule-picker__item">
+									<input
+										type="checkbox"
+										name={`${section.key}Enabled`}
+										checked={editorState[selectedChannel.id][section.key].enabled}
+										on:change={(event) => updateEnabled(section.key, event.currentTarget.checked)}
+									/>
+									<div>
+										<strong>{section.title}</strong>
+										<span>{editorState[selectedChannel.id][section.key].enabled ? "Enabled" : "Disabled"}</span>
+									</div>
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<div class="template-selector">
+						{#each templateSections as section}
+							<button
+								class={`template-selector__item ${selectedTemplate === section.key ? "template-selector__item--active" : ""}`}
+								type="button"
+								on:click={() => {
+									selectedTemplate = section.key;
+								}}
+							>
+								<strong>{section.tabLabel}</strong>
+							</button>
+						{/each}
+					</div>
+					<p class="muted alert-template-note">
+						<strong>{activeTemplateSection.title}.</strong> {activeTemplateSection.description}
+					</p>
 
 					<div class="compact-editor-grid">
 						<label class={`compact-editor-field ${activeField === "titleTemplate" ? "compact-editor-field--active" : ""}`}>
 							<span>Title</span>
 							<input
 								bind:this={titleInput}
+								name={`${selectedTemplate}TitleTemplate`}
 								value={activeTemplateState.titleTemplate}
 								on:focus={() => {
 									activeField = "titleTemplate";
@@ -512,6 +608,7 @@
 							<span>Description</span>
 							<textarea
 								bind:this={descriptionInput}
+								name={`${selectedTemplate}DescriptionTemplate`}
 								rows="8"
 								value={activeTemplateState.descriptionTemplate}
 								on:focus={() => {
@@ -527,6 +624,7 @@
 							<span>Additional content</span>
 							<textarea
 								bind:this={contentInput}
+								name={`${selectedTemplate}ContentTemplate`}
 								rows="3"
 								value={activeTemplateState.contentTemplate}
 								on:focus={() => {
@@ -549,6 +647,7 @@
 								/>
 								<input
 									class="color-picker-row__hex"
+									name={`${selectedTemplate}Color`}
 									placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
 									value={activeTemplateState.color}
 									on:input={(event) => updateColor(event.currentTarget.value)}
@@ -557,30 +656,12 @@
 						</label>
 					</div>
 
-					{#each templateSections as section}
-						<input type="hidden" name={`${section.key}TitleTemplate`} value={editorState[selectedChannel.id][section.key].titleTemplate} />
-						<input
-							type="hidden"
-							name={`${section.key}DescriptionTemplate`}
-							value={editorState[selectedChannel.id][section.key].descriptionTemplate}
-						/>
-						<input
-							type="hidden"
-							name={`${section.key}ContentTemplate`}
-							value={editorState[selectedChannel.id][section.key].contentTemplate}
-						/>
-						<input type="hidden" name={`${section.key}Color`} value={editorState[selectedChannel.id][section.key].color} />
-					{/each}
-
 					<div class="button-row compact-row">
 						<button class="button button--primary" type="submit" formaction="?/saveNotificationChannel">
 							{saveButtonLabel(selectedTemplate)}
 						</button>
 						<button class="button button--secondary" type="submit" formaction="?/toggleNotificationChannel">
-							{selectedChannel.isActive ? "Disable channel" : "Enable channel"}
-						</button>
-						<button class="button button--secondary" type="submit" formaction="?/deleteNotificationChannel">
-							Delete channel
+							{selectedChannel.isActive ? "Disable destination" : "Enable destination"}
 						</button>
 					</div>
 				</div>

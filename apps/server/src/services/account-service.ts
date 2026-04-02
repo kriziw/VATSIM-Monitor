@@ -5,6 +5,7 @@ import {
 	type DiscordNotificationTemplate,
 	type DiscordNotificationTemplateType,
 	type DiscordNotificationChannelConfig,
+	type PartialDiscordNotificationChannelConfig,
 	type NotificationChannel,
 	type NotificationChannelType,
 	type WatchRule
@@ -88,6 +89,7 @@ function normalizeDiscordTemplate(
 	const defaults = getDefaultDiscordNotificationTemplate(type);
 
 	return {
+		enabled: typeof template?.enabled === "boolean" ? template.enabled : defaults.enabled,
 		titleTemplate:
 			normalizeTemplateField(template?.titleTemplate ?? defaults.titleTemplate, `${label} title`, 256) ??
 			defaults.titleTemplate,
@@ -103,7 +105,7 @@ function normalizeDiscordTemplate(
 }
 
 function normalizeDiscordConfig(
-	input?: Partial<DiscordNotificationChannelConfig> | null
+	input?: PartialDiscordNotificationChannelConfig | null
 ): DiscordNotificationChannelConfig {
 	const config = coerceDiscordNotificationConfig(input ?? getDefaultDiscordNotificationConfig());
 	return {
@@ -115,7 +117,7 @@ function normalizeDiscordConfig(
 
 function mergeDiscordConfig(
 	existing: DiscordNotificationChannelConfig | null | undefined,
-	update: Partial<DiscordNotificationChannelConfig> | null | undefined
+	update: PartialDiscordNotificationChannelConfig | null | undefined
 ): DiscordNotificationChannelConfig {
 	const base = coerceDiscordNotificationConfig(existing ?? getDefaultDiscordNotificationConfig());
 	if (!update) {
@@ -134,6 +136,24 @@ export class AccountService {
 		private readonly watchRuleStore: WatchRuleStore,
 		private readonly notificationChannelStore: NotificationChannelStore
 	) {}
+
+	private async validateWatchRuleSelection(userId: string, watchRuleIds: string[]): Promise<string[]> {
+		if (watchRuleIds.length === 0) {
+			return [];
+		}
+
+		const ownedWatchRules = await this.watchRuleStore.listForUser(userId);
+		const ownedWatchRuleIds = new Set(ownedWatchRules.map((watchRule) => watchRule.id));
+		const uniqueWatchRuleIds = [...new Set(watchRuleIds)];
+
+		for (const watchRuleId of uniqueWatchRuleIds) {
+			if (!ownedWatchRuleIds.has(watchRuleId)) {
+				throw new AccountError("One or more selected watch rules were not found.", 400);
+			}
+		}
+
+		return uniqueWatchRuleIds;
+	}
 
 	public async getDashboardData(userId: string): Promise<{
 		watchRules: WatchRule[];
@@ -185,23 +205,26 @@ export class AccountService {
 		return watchRule;
 	}
 
-	public async deleteWatchRule(userId: string, id: string): Promise<void> {
+	public async deleteWatchRule(userId: string, id: string): Promise<{ detachedAlertCount: number }> {
 		const existing = await this.watchRuleStore.getById(id, userId);
 		if (!existing) {
 			throw new AccountError("Watch rule was not found.", 404);
 		}
 
+		const detachedAlertCount = await this.notificationChannelStore.countByWatchRuleId(userId, id);
 		await this.watchRuleStore.delete(id, userId);
+		return { detachedAlertCount };
 	}
 
 	public async createNotificationChannel(
 		userId: string,
-		input: {
+	input: {
 			type: NotificationChannelType;
 			destination: string;
 			displayName: string | null;
-			config?: Partial<DiscordNotificationChannelConfig> | null;
-		}
+			config?: PartialDiscordNotificationChannelConfig | null;
+			watchRuleIds?: string[];
+	}
 	): Promise<NotificationChannel> {
 		if (input.type !== "discord_webhook") {
 			throw new AccountError("Only Discord webhook channels are supported in this slice.", 400);
@@ -214,24 +237,28 @@ export class AccountService {
 			throw new AccountError("That Discord webhook is already configured for this account.", 409);
 		}
 
+		const watchRuleIds = await this.validateWatchRuleSelection(userId, input.watchRuleIds ?? []);
+
 		return this.notificationChannelStore.create({
 			userId,
 			type: input.type,
 			destination,
 			displayName: input.displayName?.trim() || null,
-			config: normalizeDiscordConfig(input.config)
+			config: normalizeDiscordConfig(input.config),
+			watchRuleIds
 		});
 	}
 
 	public async updateNotificationChannel(
 		userId: string,
 		id: string,
-		update: {
+	update: {
 			displayName?: string | null;
 			destination?: string;
-			config?: Partial<DiscordNotificationChannelConfig> | null;
+			config?: PartialDiscordNotificationChannelConfig | null;
 			isActive?: boolean;
-		}
+		watchRuleIds?: string[];
+	}
 	): Promise<NotificationChannel> {
 		const existing = await this.notificationChannelStore.getById(id, userId);
 		if (!existing) {
@@ -248,6 +275,10 @@ export class AccountService {
 			}
 		}
 
+		const watchRuleIds = Array.isArray(update.watchRuleIds)
+			? await this.validateWatchRuleSelection(userId, update.watchRuleIds)
+			: undefined;
+
 		const channel = await this.notificationChannelStore.update({
 			id,
 			userId,
@@ -256,7 +287,8 @@ export class AccountService {
 			config: Object.prototype.hasOwnProperty.call(update, "config")
 				? mergeDiscordConfig(existing.config, update.config)
 				: undefined,
-			isActive: update.isActive
+			isActive: update.isActive,
+			watchRuleIds
 		});
 
 		return channel ?? existing;

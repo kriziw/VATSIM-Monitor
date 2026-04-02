@@ -6,6 +6,7 @@ export type MonitorProviderState = "active" | "pending" | "stopped";
 export type DiscordNotificationTemplateType = "controllerChange" | "controllerOffline" | "controllerOnline";
 
 export interface DiscordNotificationTemplate {
+	enabled: boolean;
 	titleTemplate: string;
 	descriptionTemplate: string;
 	contentTemplate: string | null;
@@ -16,6 +17,12 @@ export interface DiscordNotificationChannelConfig {
 	controllerOnline: DiscordNotificationTemplate;
 	controllerOffline: DiscordNotificationTemplate;
 	controllerChange: DiscordNotificationTemplate;
+}
+
+export interface PartialDiscordNotificationChannelConfig {
+	controllerOnline?: Partial<DiscordNotificationTemplate>;
+	controllerOffline?: Partial<DiscordNotificationTemplate>;
+	controllerChange?: Partial<DiscordNotificationTemplate>;
 }
 
 export const DISCORD_TEMPLATE_VARIABLES = [
@@ -36,6 +43,7 @@ export function getDefaultDiscordNotificationTemplate(
 ): DiscordNotificationTemplate {
 	if (type === "controllerOnline") {
 		return {
+			enabled: true,
 			titleTemplate: "Controller online: {{callsign}}",
 			descriptionTemplate:
 				"**{{controllerName}}** ({{controllerCid}}) came online on **{{callsign}}** at **{{frequency}}**.",
@@ -46,6 +54,7 @@ export function getDefaultDiscordNotificationTemplate(
 
 	if (type === "controllerOffline") {
 		return {
+			enabled: true,
 			titleTemplate: "Controller offline: {{callsign}}",
 			descriptionTemplate:
 				"**{{controllerName}}** ({{controllerCid}}) went offline from **{{callsign}}**.",
@@ -55,6 +64,7 @@ export function getDefaultDiscordNotificationTemplate(
 	}
 
 	return {
+		enabled: true,
 		titleTemplate: "Controller change: {{callsign}}",
 		descriptionTemplate:
 			"**{{previousControllerName}}** ({{previousControllerCid}}) was replaced by **{{controllerName}}** ({{controllerCid}}) on **{{callsign}}**.",
@@ -71,6 +81,7 @@ function coerceDiscordNotificationTemplate(
 	const template = raw && typeof raw === "object" ? (raw as Partial<DiscordNotificationTemplate>) : {};
 
 	return {
+		enabled: typeof template.enabled === "boolean" ? template.enabled : defaults.enabled,
 		titleTemplate:
 			typeof template.titleTemplate === "string" && template.titleTemplate.trim().length > 0
 				? template.titleTemplate
@@ -165,6 +176,7 @@ export interface NotificationChannel {
 	destination: string;
 	destinationMasked: string;
 	config: DiscordNotificationChannelConfig | null;
+	watchRuleIds: string[];
 	isActive: boolean;
 	createdAt: string;
 }

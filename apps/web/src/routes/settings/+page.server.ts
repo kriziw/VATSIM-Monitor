@@ -78,8 +78,15 @@ export const actions = {
 		const id = String(form.get("id") || "");
 
 		try {
-			await deleteWatchRule(sessionId, id);
-			return { success: true };
+			const result = await deleteWatchRule(sessionId, id);
+			return {
+				success: true,
+				section: "watchRules",
+				message:
+					result.detachedAlertCount > 0
+						? `Watch rule deleted and removed from ${result.detachedAlertCount} alert destination${result.detachedAlertCount === 1 ? "" : "s"}.`
+						: "Watch rule deleted."
+			};
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "watchRules",

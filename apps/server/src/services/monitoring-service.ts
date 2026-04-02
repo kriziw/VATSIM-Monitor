@@ -418,6 +418,17 @@ export class MonitoringService {
 		});
 
 		for (const target of matchingTargets.values()) {
+			const template =
+				type === "controller_online"
+					? target.config.controllerOnline
+					: type === "controller_offline"
+						? target.config.controllerOffline
+						: target.config.controllerChange;
+			if (!template.enabled) {
+				skippedNotifications += 1;
+				continue;
+			}
+
 			const delivery = await this.notificationDeliveryStore.createPending(event.id, target.channelId);
 
 			try {

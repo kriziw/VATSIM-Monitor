@@ -47,8 +47,9 @@ export class NotificationRoutingStore {
 				nc.display_name AS channel_display_name,
 				nc.destination,
 				nc.config_json
-			 FROM watch_rules wr
-			 INNER JOIN notification_channels nc ON nc.user_id = wr.user_id
+			 FROM notification_channel_watch_rules ncr
+			 INNER JOIN watch_rules wr ON wr.id = ncr.watch_rule_id
+			 INNER JOIN notification_channels nc ON nc.id = ncr.channel_id
 			 WHERE wr.is_active = TRUE
 			   AND nc.is_active = TRUE
 			   AND nc.type = 'discord_webhook'`

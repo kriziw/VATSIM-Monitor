@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import type { DiscordNotificationChannelConfig } from "@vatsim-monitor/domain";
+import type { PartialDiscordNotificationChannelConfig } from "@vatsim-monitor/domain";
 import type { AuthService } from "../services/auth-service.js";
 import { AccountError, AccountService } from "../services/account-service.js";
 import type { MonitoringService } from "../services/monitoring-service.js";
@@ -16,12 +16,20 @@ async function requireSession(req: Request, res: Response, authService: AuthServ
 	return authenticatedSession;
 }
 
-function parseDiscordConfig(body: unknown): Partial<DiscordNotificationChannelConfig> | undefined {
+function parseDiscordConfig(body: unknown): PartialDiscordNotificationChannelConfig | undefined {
 	if (!body || typeof body !== "object") {
 		return undefined;
 	}
 
-	return body as Partial<DiscordNotificationChannelConfig>;
+	return body as PartialDiscordNotificationChannelConfig;
+}
+
+function parseWatchRuleIds(body: unknown): string[] | undefined {
+	if (!Array.isArray(body)) {
+		return undefined;
+	}
+
+	return body.filter((value): value is string => typeof value === "string");
 }
 
 export function createAccountRouter(
@@ -116,8 +124,8 @@ export function createAccountRouter(
 		}
 
 		try {
-			await accountService.deleteWatchRule(authenticatedSession.user.id, req.params.id);
-			res.sendStatus(204);
+			const result = await accountService.deleteWatchRule(authenticatedSession.user.id, req.params.id);
+			res.json(result);
 		} catch (error) {
 			if (error instanceof AccountError) {
 				res.status(error.status).json({ message: error.message });
@@ -139,7 +147,8 @@ export function createAccountRouter(
 				type: req.body?.type,
 				destination: typeof req.body?.destination === "string" ? req.body.destination : "",
 				displayName: typeof req.body?.displayName === "string" ? req.body.displayName : null,
-				config: parseDiscordConfig(req.body?.config)
+				config: parseDiscordConfig(req.body?.config),
+				watchRuleIds: parseWatchRuleIds(req.body?.watchRuleIds)
 			});
 			res.status(201).json(channel);
 		} catch (error) {
@@ -165,7 +174,10 @@ export function createAccountRouter(
 				config: Object.prototype.hasOwnProperty.call(req.body || {}, "config")
 					? parseDiscordConfig(req.body?.config) ?? null
 					: undefined,
-				isActive: typeof req.body?.isActive === "boolean" ? req.body.isActive : undefined
+				isActive: typeof req.body?.isActive === "boolean" ? req.body.isActive : undefined,
+				watchRuleIds: Object.prototype.hasOwnProperty.call(req.body || {}, "watchRuleIds")
+					? parseWatchRuleIds(req.body?.watchRuleIds) ?? []
+					: undefined
 			});
 			res.json(channel);
 		} catch (error) {
