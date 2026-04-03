@@ -78,6 +78,39 @@ textarea {
 	padding: 18px 0 32px;
 }
 
+.release-banner {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	padding: 14px 16px;
+	margin-bottom: 18px;
+	border-radius: 18px;
+	border: 1px solid rgba(12, 39, 70, 0.12);
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(236, 245, 255, 0.9));
+	box-shadow: 0 14px 30px rgba(12, 39, 70, 0.08);
+}
+
+.release-banner__copy {
+	display: grid;
+	gap: 4px;
+}
+
+.release-banner__copy strong {
+	color: var(--navy);
+}
+
+.release-banner__copy span {
+	color: var(--muted);
+}
+
+.release-banner__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
 .brand {
 	display: flex;
 	text-decoration: none;
@@ -1598,6 +1631,11 @@ textarea {
 	}
 
 	.topbar {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.release-banner {
 		flex-direction: column;
 		align-items: flex-start;
 	}

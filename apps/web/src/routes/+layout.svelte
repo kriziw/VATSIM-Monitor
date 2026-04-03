@@ -1,10 +1,56 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import "$lib/styles/app.css";
 
 	export let data;
+
+	let releaseBannerDismissed = false;
+
+	$: releaseBannerDismissKey = data.releaseBanner
+		? `vm-release-banner-dismissed:${data.releaseBanner.latestVersion}`
+		: "";
+
+	$: showReleaseBanner = Boolean(data.releaseBanner) && !releaseBannerDismissed;
+
+	onMount(() => {
+		if (!releaseBannerDismissKey) {
+			releaseBannerDismissed = false;
+			return;
+		}
+
+		releaseBannerDismissed = window.localStorage.getItem(releaseBannerDismissKey) === "true";
+	});
+
+	function dismissReleaseBanner() {
+		if (!releaseBannerDismissKey) {
+			return;
+		}
+
+		releaseBannerDismissed = true;
+		window.localStorage.setItem(releaseBannerDismissKey, "true");
+	}
 </script>
 
 <div class="page-shell">
+	{#if showReleaseBanner && data.releaseBanner}
+		<div class="release-banner" role="status" aria-live="polite">
+			<div class="release-banner__copy">
+				<strong>Update available</strong>
+				<span>
+					Version {data.releaseBanner.latestVersion} is available. You are currently running {data.releaseBanner.currentVersion}.
+				</span>
+			</div>
+			<div class="release-banner__actions">
+				<a class="button button--secondary" href={data.releaseBanner.url} rel="noreferrer" target="_blank">
+					View release
+				</a>
+				<button class="button button--secondary" type="button" on:click={dismissReleaseBanner}>
+					Dismiss
+				</button>
+			</div>
+		</div>
+	{/if}
+
 	<header class="topbar">
 		<a class="brand" href={data.session ? "/monitor" : "/"}>
 			<span class="brand__lockup">
