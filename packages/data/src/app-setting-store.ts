@@ -1,7 +1,7 @@
 import type { Pool, RowDataPacket } from "mysql2/promise";
 import type { AppSettings } from "@vatsim-monitor/domain";
 
-const MAX_LOG_FILE_SIZE_BYTES = 100 * 1024 * 1024;
+const MAX_LOG_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 
 interface AppSettingRow extends RowDataPacket {
 	setting_key: string;

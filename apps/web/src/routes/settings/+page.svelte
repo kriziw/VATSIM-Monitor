@@ -188,7 +188,7 @@
 			<div class="stack-card">
 				<div class="stack-card__head">
 					<strong>Log rotation</strong>
-					<span class="status-chip status-chip--muted">Max 100 MB</span>
+					<span class="status-chip status-chip--muted">Max 500 MB</span>
 				</div>
 				<div class="meta-row">
 					<span>Current cap {effectiveLogMaxFileSizeMb} MB</span>
@@ -207,7 +207,7 @@
 						value={submittedLogMaxFileSizeMb}
 					/>
 					<div class="muted compact-lead">
-						Set the maximum size of each rotating log file. Values above 100 MB are capped automatically.
+						Set the maximum size of each rotating log file. The default is 100 MB, and values above 500 MB are capped automatically.
 					</div>
 					<button class="button button--secondary" type="submit" formaction="?/updateAppSettings">
 						Save log rotation

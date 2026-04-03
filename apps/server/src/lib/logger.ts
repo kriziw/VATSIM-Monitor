@@ -56,7 +56,7 @@ function toErrorMeta(error: unknown): Record<string, unknown> {
 }
 
 export class AppLogger {
-	public static readonly MAX_LOG_FILE_SIZE_BYTES = 100 * 1024 * 1024;
+	public static readonly MAX_LOG_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 	private readonly directory: string;
 	private readonly fileName: string;
 	private maxFileSizeBytes: number;
