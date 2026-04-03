@@ -1,6 +1,6 @@
 services:
   mariadb:
-    image: mariadb:11.4
+    image: mariadb:${MARIADB_VERSION:-11.8}
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
@@ -35,7 +35,7 @@ services:
       MONITOR_POLL_INTERVAL_MS: ${MONITOR_POLL_INTERVAL_MS:-15000}
       LOG_DIR: ${LOG_DIR:-/app/apps/server/logs}
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      LOG_MAX_FILE_SIZE_BYTES: ${LOG_MAX_FILE_SIZE_BYTES:-1048576}
+      LOG_MAX_FILE_SIZE_BYTES: ${LOG_MAX_FILE_SIZE_BYTES:-104857600}
       LOG_MAX_FILES: ${LOG_MAX_FILES:-5}
       VATSIM_OAUTH_ENABLED: ${VATSIM_OAUTH_ENABLED:-false}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
