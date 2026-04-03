@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.10...v0.11.0) (2026-04-03)
+
+
+### Features
+
+* add log exports to the logs page ([#75](https://github.com/kriziw/VATSIM-Monitor/issues/75)) ([3ff0f88](https://github.com/kriziw/VATSIM-Monitor/commit/3ff0f888ec0abfcffb8d03c9ce6dfbdea731dacb))
+
 ## [0.10.10](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.9...v0.10.10) (2026-04-03)
 
 
