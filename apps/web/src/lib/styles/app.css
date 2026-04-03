@@ -801,6 +801,11 @@ textarea {
 	gap: 8px;
 }
 
+.template-variable-list--stack {
+	grid-template-columns: 1fr;
+	gap: 8px;
+}
+
 .template-variable-row {
 	display: grid;
 	gap: 6px;
@@ -943,6 +948,131 @@ textarea {
 	margin-top: 16px;
 }
 
+.alerts-layout {
+	display: grid;
+	grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+	gap: 18px;
+	grid-column: 1 / -1;
+}
+
+.alerts-sidebar,
+.alerts-editor-shell {
+	align-content: start;
+}
+
+.alerts-destination-list {
+	display: grid;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.alerts-destination-item {
+	display: grid;
+	gap: 8px;
+	text-align: left;
+	padding: 14px 16px;
+	border-radius: 18px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.72);
+	cursor: pointer;
+}
+
+.alerts-destination-item--active {
+	border-color: rgba(12, 39, 70, 0.2);
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(232, 241, 250, 0.92));
+	box-shadow: 0 14px 32px rgba(12, 39, 70, 0.08);
+}
+
+.alerts-destination-item__head {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	align-items: flex-start;
+}
+
+.alerts-destination-item strong {
+	color: var(--navy);
+}
+
+.alerts-destination-item em {
+	color: var(--muted);
+	font-style: normal;
+	font-size: 0.9rem;
+}
+
+.alerts-create-form {
+	display: grid;
+	gap: 12px;
+	margin-top: 18px;
+	padding-top: 18px;
+	border-top: 1px solid var(--line);
+}
+
+.alerts-create-form label,
+.alerts-panel label {
+	display: grid;
+	gap: 6px;
+}
+
+.alerts-editor-form {
+	display: grid;
+	gap: 18px;
+}
+
+.alerts-editor-top {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(220px, 0.7fr);
+	gap: 14px;
+}
+
+.alerts-panel {
+	display: grid;
+	gap: 12px;
+	padding: 16px;
+	border-radius: 18px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.66);
+}
+
+.alerts-panel--composer {
+	gap: 16px;
+}
+
+.alerts-panel__head {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 8px;
+	align-items: baseline;
+}
+
+.alerts-step {
+	padding: 6px 10px;
+	font-size: 0.74rem;
+}
+
+.alerts-toggle-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.alerts-toggle-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.8);
+	color: var(--navy);
+	font-weight: 700;
+}
+
+.alerts-toggle-pill input {
+	margin: 0;
+}
+
 .template-selector {
 	display: flex;
 	flex-wrap: wrap;
@@ -991,6 +1121,36 @@ textarea {
 
 .alert-template-note {
 	margin: 0;
+}
+
+.template-selector--segmented {
+	margin-top: 10px;
+}
+
+.alerts-composer__head {
+	display: grid;
+	grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+	gap: 16px;
+	align-items: end;
+}
+
+.alerts-composer {
+	display: grid;
+	grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.8fr);
+	gap: 18px;
+	align-items: start;
+}
+
+.alerts-composer__editor,
+.alerts-composer__aside {
+	display: grid;
+	gap: 14px;
+}
+
+.alerts-composer__row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(240px, 0.42fr);
+	gap: 14px;
 }
 
 .alert-overview-grid {
@@ -1077,8 +1237,17 @@ textarea {
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.rule-picker--tight {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+}
+
 .rule-picker--compact .rule-picker__item,
 .subtype-toggle-grid--compact .rule-picker__item {
+	padding: 12px 14px;
+}
+
+.rule-picker__item--tight {
 	padding: 12px 14px;
 }
 
@@ -1118,6 +1287,10 @@ textarea {
 
 .compact-editor-field--large textarea {
 	min-height: 140px;
+}
+
+.compact-editor-field--color {
+	align-content: start;
 }
 
 .color-picker-row {
@@ -1404,7 +1577,12 @@ textarea {
 	.channel-selector,
 	.template-guide,
 	.template-section-grid,
-	.alerts-workspace {
+	.alerts-workspace,
+	.alerts-layout,
+	.alerts-editor-top,
+	.alerts-composer,
+	.alerts-composer__head,
+	.alerts-composer__row {
 		grid-template-columns: 1fr;
 	}
 
@@ -1412,7 +1590,9 @@ textarea {
 	.subtype-toggle-grid,
 	.alert-overview-grid,
 	.rule-picker--compact,
+	.rule-picker--tight,
 	.template-variable-list--compact,
+	.template-variable-list--stack,
 	.form-grid--compact {
 		grid-template-columns: 1fr;
 	}
@@ -1444,6 +1624,12 @@ textarea {
 
 	.feed-list li,
 	.stack-card__head {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.alerts-destination-item__head,
+	.alerts-panel__head {
 		flex-direction: column;
 		align-items: flex-start;
 	}
