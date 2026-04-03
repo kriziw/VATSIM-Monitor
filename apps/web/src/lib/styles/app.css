@@ -983,7 +983,7 @@ textarea {
 
 .alerts-layout {
 	display: grid;
-	grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+	grid-template-columns: minmax(300px, 340px) minmax(0, 1fr);
 	gap: 18px;
 	grid-column: 1 / -1;
 }
@@ -991,6 +991,7 @@ textarea {
 .alerts-sidebar,
 .alerts-editor-shell {
 	align-content: start;
+	min-width: 0;
 }
 
 .alerts-destination-list {
@@ -1008,6 +1009,7 @@ textarea {
 	border: 1px solid var(--line);
 	background: rgba(255, 255, 255, 0.72);
 	cursor: pointer;
+	min-width: 0;
 }
 
 .alerts-destination-item--active {
@@ -1025,6 +1027,21 @@ textarea {
 
 .alerts-destination-item strong {
 	color: var(--navy);
+}
+
+.alerts-destination-item strong,
+.alerts-destination-item span,
+.alerts-destination-item em,
+.alert-editor__subtitle,
+.alert-template-note,
+.rule-picker__item strong,
+.rule-picker__item span,
+.preview-card__header strong,
+.preview-card p,
+.preview-card__content,
+.template-variable-row span {
+	overflow-wrap: anywhere;
+	word-break: break-word;
 }
 
 .alerts-destination-item em {
@@ -1054,8 +1071,12 @@ textarea {
 
 .alerts-editor-top {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(220px, 0.7fr);
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 14px;
+}
+
+.alerts-editor-top .alerts-panel:last-child {
+	grid-column: 1 / -1;
 }
 
 .alerts-panel {
@@ -1065,6 +1086,7 @@ textarea {
 	border-radius: 18px;
 	border: 1px solid var(--line);
 	background: rgba(255, 255, 255, 0.66);
+	min-width: 0;
 }
 
 .alerts-panel--composer {
@@ -1077,6 +1099,7 @@ textarea {
 	justify-content: space-between;
 	gap: 8px;
 	align-items: baseline;
+	min-width: 0;
 }
 
 .alerts-step {
@@ -1169,7 +1192,7 @@ textarea {
 
 .alerts-composer {
 	display: grid;
-	grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.8fr);
+	grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.8fr);
 	gap: 18px;
 	align-items: start;
 }
@@ -1178,6 +1201,7 @@ textarea {
 .alerts-composer__aside {
 	display: grid;
 	gap: 14px;
+	min-width: 0;
 }
 
 .alerts-composer__row {
@@ -1235,7 +1259,7 @@ textarea {
 
 .alert-config-grid,
 .subtype-toggle-grid {
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: 1fr;
 }
 
 .rule-picker__item {
@@ -1255,6 +1279,7 @@ textarea {
 .rule-picker__item div {
 	display: grid;
 	gap: 4px;
+	min-width: 0;
 }
 
 .rule-picker__item strong {
@@ -1296,6 +1321,7 @@ textarea {
 	border-radius: 18px;
 	border: 1px solid var(--line);
 	background: rgba(255, 255, 255, 0.72);
+	min-width: 0;
 }
 
 .compact-editor-field--active {
@@ -1406,6 +1432,7 @@ textarea {
 	background:
 		linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 251, 255, 0.86));
 	box-shadow: inset 4px 0 0 var(--preview-color);
+	min-width: 0;
 }
 
 .preview-card__header {
@@ -1594,6 +1621,15 @@ textarea {
 .toggle-chip input {
 	margin: 0;
 	accent-color: var(--navy);
+}
+
+@media (max-width: 1200px) {
+	.alerts-layout,
+	.alerts-composer,
+	.alerts-composer__head,
+	.alerts-composer__row {
+		grid-template-columns: 1fr;
+	}
 }
 
 @media (max-width: 900px) {
