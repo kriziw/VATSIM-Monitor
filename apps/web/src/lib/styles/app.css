@@ -48,9 +48,10 @@ textarea {
 }
 
 .page-shell {
-	max-width: 1180px;
-	margin: 0 auto;
-	padding: 24px;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	padding: 24px clamp(22px, 3vw, 42px);
 	position: relative;
 }
 
