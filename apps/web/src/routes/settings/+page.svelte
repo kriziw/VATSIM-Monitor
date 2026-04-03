@@ -43,6 +43,9 @@
 			</div>
 			<div class="button-row settings-toolbar__actions">
 				<a class="button button--secondary" href="/alerts">Open Alerts</a>
+				{#if data.preferences.logsEnabled}
+					<a class="button button--secondary" href="/logs">Open Logs</a>
+				{/if}
 				<a class="button button--secondary" href="/logout">Sign out</a>
 			</div>
 		</div>
@@ -142,6 +145,40 @@
 					<span>Controller online</span>
 					<span>Controller offline</span>
 					<span>Controller change</span>
+				</div>
+			</div>
+		</div>
+	</article>
+
+	<article class="dashboard-card" id="preferences">
+		<div class="section-heading">
+			<h2>Troubleshooting</h2>
+		</div>
+		<p>Enable the in-app Logs page only when you want recent rotating server logs available from the navigation.</p>
+
+		{#if form?.section === "preferences"}
+			<div class="form-error">{form.message}</div>
+		{/if}
+
+		<div class="card-list">
+			<div class="stack-card">
+				<div class="stack-card__head">
+					<strong>Logs page</strong>
+					<span class="status-chip {data.preferences.logsEnabled ? 'status-chip--ok' : 'status-chip--muted'}">
+						{data.preferences.logsEnabled ? "Enabled" : "Disabled"}
+					</span>
+				</div>
+				<div class="meta-row">
+					<span>Hidden from navigation by default</span>
+					<span>Auto-refresh starts paused</span>
+				</div>
+				<div class="button-row compact-row">
+					<form method="post">
+						<input type="hidden" name="logsEnabled" value={data.preferences.logsEnabled ? "false" : "true"} />
+						<button class="button button--secondary" type="submit" formaction="?/updatePreferences">
+							{data.preferences.logsEnabled ? "Disable Logs page" : "Enable Logs page"}
+						</button>
+					</form>
 				</div>
 			</div>
 		</div>

@@ -12,6 +12,7 @@ The project combines:
 - watch-rule based monitoring for specific positions or wildcard patterns
 - optional top-down matching for broader position coverage
 - Discord webhook notifications with per-event customization
+- in-app access to recent rotating application logs
 - local multi-user accounts without requiring VATSIM OAuth
 
 In practice, this means a user can define the callsigns they care about, keep a live monitor page open, and receive notifications when those positions come online, go offline, or change controller.
@@ -79,6 +80,7 @@ This scaffold intentionally establishes structure first. It includes:
 - Discord webhook fan-out driven by active watch rules and channels
 - per-channel Discord template customization for online, offline, and controller-change events
 - a watchlist-focused monitor view for matched controllers and recent relevant changes
+- a signed-in logs page backed by rotating server log files
 
 It does not yet include:
 
@@ -130,6 +132,9 @@ The default `docker-compose.yml` now targets the published Docker Hub images so 
 3. Optionally change `SERVER_PORT`, `WEB_PORT`, or `APP_VERSION`.
 4. Run `docker compose pull`.
 5. Run `docker compose up -d`.
+
+The server now keeps built-in rotating log files and can expose recent entries inside the signed-in web UI on `/logs` when that troubleshooting page is enabled from Settings for an account.
+You can also raise or lower backend verbosity with `LOG_LEVEL` (`debug`, `info`, `warn`, `error`).
 
 ### Reverse Proxy Setup
 

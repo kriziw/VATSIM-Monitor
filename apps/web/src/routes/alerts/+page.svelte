@@ -601,6 +601,7 @@
 						</p>
 					</div>
 
+					{#key `${selectedChannel.id}:${selectedTemplate}`}
 					<div class="compact-editor-grid">
 						<label class={`compact-editor-field ${activeField === "titleTemplate" ? "compact-editor-field--active" : ""}`}>
 							<span>Title</span>
@@ -649,6 +650,7 @@
 						<label class="compact-editor-field">
 							<span>Embed colour</span>
 							<div class="color-picker-row">
+								{#key colorValue()}
 								<button
 									class="color-picker-row__swatch"
 									type="button"
@@ -657,6 +659,7 @@
 									style={`background: ${colorValue()}`}
 									on:click={openColorPicker}
 								></button>
+								{/key}
 								<input
 									bind:this={colorInput}
 									class="color-picker-row__native"
@@ -675,6 +678,7 @@
 							</div>
 						</label>
 					</div>
+					{/key}
 
 					<input
 						type="hidden"
@@ -693,6 +697,7 @@
 				</div>
 
 				<aside class="alerts-workspace__sidebar">
+					{#key `${selectedChannel.id}:${selectedTemplate}`}
 					<div class="template-detail template-detail--compact">
 						<strong>Live preview</strong>
 						<div class="preview-card" style={`--preview-color: ${activeTemplateState.color || "#0C2746"}`}>
@@ -706,6 +711,7 @@
 							{/if}
 						</div>
 					</div>
+					{/key}
 
 					<div class="template-detail template-detail--compact">
 						<div class="template-detail__head">

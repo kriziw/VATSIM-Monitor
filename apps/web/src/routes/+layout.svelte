@@ -21,6 +21,9 @@
 				<a href="/monitor">Monitor</a>
 				<a href="/settings">Settings</a>
 				<a href="/alerts">Alerts</a>
+				{#if data.preferences?.logsEnabled}
+					<a href="/logs">Logs</a>
+				{/if}
 				<span class="nav-user">{data.session.user.username}</span>
 				<a class="nav-cta" href="/logout">Sign out</a>
 			{:else}

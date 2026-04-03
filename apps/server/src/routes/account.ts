@@ -49,6 +49,16 @@ export function createAccountRouter(
 		res.json(data);
 	});
 
+	router.get("/preferences", async (req, res) => {
+		const authenticatedSession = await requireSession(req, res, authService);
+		if (!authenticatedSession) {
+			return;
+		}
+
+		const data = await accountService.getDashboardData(authenticatedSession.user.id);
+		res.json(data.preferences);
+	});
+
 	router.get("/monitor", async (req, res) => {
 		const authenticatedSession = await requireSession(req, res, authService);
 		if (!authenticatedSession) {
@@ -206,6 +216,27 @@ export function createAccountRouter(
 			}
 
 			res.status(500).json({ message: "Unexpected notification channel deletion failure." });
+		}
+	});
+
+	router.patch("/preferences", async (req, res) => {
+		const authenticatedSession = await requireSession(req, res, authService);
+		if (!authenticatedSession) {
+			return;
+		}
+
+		try {
+			const preferences = await accountService.updatePreferences(authenticatedSession.user.id, {
+				logsEnabled: typeof req.body?.logsEnabled === "boolean" ? req.body.logsEnabled : undefined
+			});
+			res.json(preferences);
+		} catch (error) {
+			if (error instanceof AccountError) {
+				res.status(error.status).json({ message: error.message });
+				return;
+			}
+
+			res.status(500).json({ message: "Unexpected preference update failure." });
 		}
 	});
 

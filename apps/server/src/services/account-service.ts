@@ -8,9 +8,10 @@ import {
 	type PartialDiscordNotificationChannelConfig,
 	type NotificationChannel,
 	type NotificationChannelType,
+	type UserPreferences,
 	type WatchRule
 } from "@vatsim-monitor/domain";
-import { NotificationChannelStore, WatchRuleStore } from "@vatsim-monitor/data";
+import { NotificationChannelStore, UserPreferenceStore, WatchRuleStore } from "@vatsim-monitor/data";
 
 export class AccountError extends Error {
 	constructor(message: string, public readonly status: number) {
@@ -149,7 +150,8 @@ function mergeDiscordConfig(
 export class AccountService {
 	constructor(
 		private readonly watchRuleStore: WatchRuleStore,
-		private readonly notificationChannelStore: NotificationChannelStore
+		private readonly notificationChannelStore: NotificationChannelStore,
+		private readonly userPreferenceStore: UserPreferenceStore
 	) {}
 
 	private async validateWatchRuleSelection(userId: string, watchRuleIds: string[]): Promise<string[]> {
@@ -173,13 +175,22 @@ export class AccountService {
 	public async getDashboardData(userId: string): Promise<{
 		watchRules: WatchRule[];
 		notificationChannels: NotificationChannel[];
+		preferences: UserPreferences;
 	}> {
-		const [watchRules, notificationChannels] = await Promise.all([
+		const [watchRules, notificationChannels, preferences] = await Promise.all([
 			this.watchRuleStore.listForUser(userId),
-			this.notificationChannelStore.listForUser(userId)
+			this.notificationChannelStore.listForUser(userId),
+			this.userPreferenceStore.getForUser(userId)
 		]);
 
-		return { watchRules, notificationChannels };
+		return { watchRules, notificationChannels, preferences };
+	}
+
+	public async updatePreferences(
+		userId: string,
+		update: { logsEnabled?: boolean }
+	): Promise<UserPreferences> {
+		return this.userPreferenceStore.update(userId, update);
 	}
 
 	public async createWatchRule(userId: string, pattern: string, topdown: boolean): Promise<WatchRule> {

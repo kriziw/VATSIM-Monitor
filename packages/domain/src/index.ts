@@ -206,6 +206,11 @@ export interface NotificationChannel {
 	createdAt: string;
 }
 
+export interface UserPreferences {
+	userId: string;
+	logsEnabled: boolean;
+}
+
 export interface ControllerEvent {
 	id: string;
 	type: ControllerEventType;
