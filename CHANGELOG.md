@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.11.1...v0.11.2) (2026-04-03)
+
+
+### Bug Fixes
+
+* simplify the alerts editor layout ([#79](https://github.com/kriziw/VATSIM-Monitor/issues/79)) ([d675229](https://github.com/kriziw/VATSIM-Monitor/commit/d67522918a2ff1c330a1e6bd031627f928809c68))
+
 ## [0.11.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.11.0...v0.11.1) (2026-04-03)
 
 
