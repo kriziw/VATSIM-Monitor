@@ -165,12 +165,14 @@
 							<span
 								class="status-chip {event.type === 'controller_online'
 									? 'status-chip--ok'
-									: event.type === 'controller_change'
+									: event.type === 'controller_change' || event.type === 'controller_move'
 										? 'status-chip--warn'
 										: 'status-chip--muted'}"
 							>
 								{event.type === "controller_online"
 									? "Online"
+									: event.type === "controller_move"
+										? "Moved"
 									: event.type === "controller_change"
 										? "Changed"
 										: "Offline"}
@@ -180,6 +182,9 @@
 							<span>CID {event.controllerCid}</span>
 							<span>{event.frequency || "Frequency pending"}</span>
 							<span>{event.occurredAt}</span>
+							{#if event.type === "controller_move" && event.payload?.previousController?.callsign}
+								<span>From {event.payload.previousController.callsign}</span>
+							{/if}
 						</div>
 					</div>
 				{/each}

@@ -51,6 +51,10 @@ type PendingOfflineResolution =
 			previousController: VatsimControllerRecord;
 	  }
 	| {
+			type: "controller_move";
+			previousController: VatsimControllerRecord;
+	  }
+	| {
 			type: "same_controller_recovered";
 	  }
 	| {
@@ -168,7 +172,7 @@ export class MonitoringService {
 			}
 
 			for (const event of recentEvents) {
-				const matchedRules = await this.getMatchedRulesForCallsign(activeWatchRules, event.callsign);
+				const matchedRules = await this.getMatchedRulesForEvent(activeWatchRules, event);
 				if (matchedRules.length === 0) {
 					continue;
 				}
@@ -285,6 +289,25 @@ export class MonitoringService {
 		return matchedRules;
 	}
 
+	private async getMatchedRulesForEvent(
+		watchRules: WatchRule[],
+		event: ControllerEvent
+	): Promise<MonitorSnapshot["watchedControllers"][number]["matchedRules"]> {
+		const relevantCallsigns = new Set<string>([event.callsign]);
+		if (event.payload?.previousController?.callsign) {
+			relevantCallsigns.add(event.payload.previousController.callsign);
+		}
+
+		const matches = new Map<string, MonitorSnapshot["watchedControllers"][number]["matchedRules"][number]>();
+		for (const relevantCallsign of relevantCallsigns) {
+			for (const match of await this.getMatchedRulesForCallsign(watchRules, relevantCallsign)) {
+				matches.set(`${match.watchRuleId}:${match.matchType}:${match.pattern}`, match);
+			}
+		}
+
+		return [...matches.values()];
+	}
+
 	private async pollOnce(): Promise<void> {
 		if (this.pollInFlight) {
 			return;
@@ -321,6 +344,14 @@ export class MonitoringService {
 			const newControllers = [...nextControllers.values()].filter(
 				(controller) => !this.currentControllers.has(controller.cid)
 			);
+			const movedControllers = [...nextControllers.values()].filter((controller) => {
+				const previousController = this.currentControllers.get(controller.cid);
+				if (!previousController) {
+					return false;
+				}
+
+				return previousController.callsign.toUpperCase() !== controller.callsign.toUpperCase();
+			});
 			const offlineControllers = [...this.currentControllers.values()].filter(
 				(controller) => !nextControllers.has(controller.cid)
 			);
@@ -344,6 +375,25 @@ export class MonitoringService {
 				});
 			}
 
+			for (const controller of movedControllers) {
+				cycleStats.changedEvents += 1;
+				const previousController = this.currentControllers.get(controller.cid);
+				if (!previousController) {
+					continue;
+				}
+
+				const outcome = await this.handleControllerEvent(
+					"controller_move",
+					controller,
+					occurredAt,
+					routedTargets,
+					ignoredControllerIds,
+					previousController
+				);
+				cycleStats.sentNotifications += outcome.sentNotifications;
+				cycleStats.skippedNotifications += outcome.skippedNotifications;
+			}
+
 			for (const controller of newControllers) {
 				const pendingOfflineResolution = this.takePendingOfflineController(controller, occurredAt);
 				if (pendingOfflineResolution.type === "same_controller_recovered") {
@@ -354,23 +404,29 @@ export class MonitoringService {
 					continue;
 				}
 
-				const type =
-					pendingOfflineResolution.type === "controller_change"
-						? "controller_change"
-						: "controller_online";
-				if (type === "controller_change") {
+				if (
+					pendingOfflineResolution.type === "controller_change" ||
+					pendingOfflineResolution.type === "controller_move"
+				) {
 					cycleStats.changedEvents += 1;
 				} else {
 					cycleStats.newEvents += 1;
 				}
+				const resolvedType =
+					pendingOfflineResolution.type === "controller_change"
+						? "controller_change"
+						: pendingOfflineResolution.type === "controller_move"
+							? "controller_move"
+							: "controller_online";
 
 				const outcome = await this.handleControllerEvent(
-					type,
+					resolvedType,
 					controller,
 					occurredAt,
 					routedTargets,
 					ignoredControllerIds,
-					pendingOfflineResolution.type === "controller_change"
+					pendingOfflineResolution.type === "controller_change" ||
+					pendingOfflineResolution.type === "controller_move"
 						? pendingOfflineResolution.previousController
 						: undefined
 				);
@@ -421,18 +477,34 @@ export class MonitoringService {
 		previousController?: VatsimControllerRecord
 	): Promise<{ sentNotifications: number; skippedNotifications: number }> {
 		const relatedCallsigns = new Set<string>([controller.callsign.toUpperCase()]);
+		const directCallsigns = new Set<string>([controller.callsign.toUpperCase()]);
 		for (const coveredCallsign of await this.topdownResolver.resolveCoveredCallsigns(controller.callsign)) {
 			relatedCallsigns.add(coveredCallsign.toUpperCase());
+		}
+		if (previousController) {
+			relatedCallsigns.add(previousController.callsign.toUpperCase());
+			directCallsigns.add(previousController.callsign.toUpperCase());
+			for (const coveredCallsign of await this.topdownResolver.resolveCoveredCallsigns(previousController.callsign)) {
+				relatedCallsigns.add(coveredCallsign.toUpperCase());
+			}
 		}
 
 		const matchingTargets = new Map<string, (typeof routedTargets)[number]>();
 		for (const target of routedTargets) {
 			const destinationKey = target.destination.trim().toLowerCase();
-			if (target.excludeObservers && isObserverCallsign(controller.callsign)) {
-				continue;
+			let directMatch = false;
+			for (const directCallsign of directCallsigns) {
+				if (target.excludeObservers && isObserverCallsign(directCallsign)) {
+					continue;
+				}
+
+				if (patternMatches(target.pattern, directCallsign)) {
+					directMatch = true;
+					break;
+				}
 			}
 
-			if (patternMatches(target.pattern, controller.callsign)) {
+			if (directMatch) {
 				matchingTargets.set(destinationKey, target);
 				continue;
 			}
@@ -442,7 +514,7 @@ export class MonitoringService {
 			}
 
 			for (const relatedCallsign of relatedCallsigns) {
-				if (relatedCallsign === controller.callsign) {
+				if (directCallsigns.has(relatedCallsign)) {
 					continue;
 				}
 
@@ -496,6 +568,8 @@ export class MonitoringService {
 					? target.config.controllerOnline
 					: type === "controller_offline"
 						? target.config.controllerOffline
+						: type === "controller_move"
+							? target.config.controllerMove
 						: target.config.controllerChange;
 			if (!template.enabled) {
 				skippedNotifications += 1;
@@ -542,23 +616,34 @@ export class MonitoringService {
 				? config.controllerOnline
 				: type === "controller_offline"
 					? config.controllerOffline
+					: type === "controller_move"
+						? config.controllerMove
 					: config.controllerChange;
 		const variables = {
 			callsign: controller.callsign,
 			frequency: controller.frequency,
 			controllerName: controller.name,
 			controllerCid: String(controller.cid),
+			previousCallsign: previousController?.callsign ?? controller.callsign,
 			previousControllerName: previousController?.name ?? "Unknown controller",
 			previousControllerCid: previousController ? String(previousController.cid) : "Unknown CID",
 			previousFrequency: previousController?.frequency ?? "Unknown frequency",
 			eventType: type,
 			eventLabel:
-				type === "controller_online" ? "online" : type === "controller_offline" ? "offline" : "changed",
+				type === "controller_online"
+					? "Controller Online"
+					: type === "controller_offline"
+						? "Controller Offline"
+						: type === "controller_move"
+							? "Controller Move"
+							: "Controller Change",
 			statusLabel:
 				type === "controller_online"
 					? "came online"
 					: type === "controller_offline"
 						? "went offline"
+						: type === "controller_move"
+							? "moved positions"
 						: "changed controllers"
 		};
 
@@ -576,6 +661,8 @@ export class MonitoringService {
 				? 0x1c7f58
 				: type === "controller_offline"
 					? 0xaa4d24
+					: type === "controller_move"
+						? 0x6a4fcf
 					: 0x0e7c86;
 
 		return {
@@ -598,6 +685,22 @@ export class MonitoringService {
 		const key = controller.callsign.toUpperCase();
 		const pending = this.pendingOfflineControllers.get(key);
 		if (!pending) {
+			for (const [pendingKey, pendingEntry] of this.pendingOfflineControllers.entries()) {
+				if (pendingEntry.controller.cid !== controller.cid) {
+					continue;
+				}
+
+				if (occurredAt.getTime() - pendingEntry.occurredAtMs > this.controllerChangeWindowMs) {
+					continue;
+				}
+
+				this.pendingOfflineControllers.delete(pendingKey);
+				return {
+					type: "controller_move",
+					previousController: pendingEntry.controller
+				};
+			}
+
 			return {
 				type: "none"
 			};

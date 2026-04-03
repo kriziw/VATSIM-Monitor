@@ -33,7 +33,8 @@ function readDiscordConfig(form: FormData): PartialDiscordNotificationChannelCon
 	return {
 		controllerOnline: readDiscordTemplate(form, "controllerOnline"),
 		controllerOffline: readDiscordTemplate(form, "controllerOffline"),
-		controllerChange: readDiscordTemplate(form, "controllerChange")
+		controllerChange: readDiscordTemplate(form, "controllerChange"),
+		controllerMove: readDiscordTemplate(form, "controllerMove")
 	};
 }
 
@@ -65,7 +66,7 @@ function readSelectedWatchRuleIds(form: FormData): string[] {
 
 function readSelectedTemplate(form: FormData): DiscordNotificationTemplateType {
 	const value = String(form.get("selectedTemplate") || "");
-	if (value === "controllerOffline" || value === "controllerChange") {
+	if (value === "controllerOffline" || value === "controllerChange" || value === "controllerMove") {
 		return value;
 	}
 

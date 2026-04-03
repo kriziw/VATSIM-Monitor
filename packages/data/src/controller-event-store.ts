@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { ControllerEvent, ControllerEventType } from "@vatsim-monitor/domain";
+import type { ControllerEvent, ControllerEventPayload, ControllerEventType } from "@vatsim-monitor/domain";
 import type { Pool, ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 interface ControllerEventRow extends RowDataPacket {
@@ -9,6 +9,7 @@ interface ControllerEventRow extends RowDataPacket {
 	controller_cid: number;
 	callsign: string;
 	frequency: string;
+	payload_json: string | null;
 	occurred_at: Date;
 	created_at: Date;
 }
@@ -25,6 +26,15 @@ export interface CreateControllerEventInput {
 }
 
 function mapControllerEvent(row: ControllerEventRow): ControllerEvent {
+	let payload: ControllerEventPayload | null = null;
+	if (typeof row.payload_json === "string" && row.payload_json.trim().length > 0) {
+		try {
+			payload = JSON.parse(row.payload_json) as ControllerEventPayload;
+		} catch {
+			payload = null;
+		}
+	}
+
 	return {
 		id: row.id,
 		type: row.event_type,
@@ -32,6 +42,7 @@ function mapControllerEvent(row: ControllerEventRow): ControllerEvent {
 		callsign: row.callsign,
 		frequency: row.frequency,
 		source: row.source,
+		payload,
 		occurredAt: row.occurred_at.toISOString(),
 		createdAt: row.created_at.toISOString()
 	};
@@ -68,7 +79,7 @@ export class ControllerEventStore {
 
 	public async getById(id: string): Promise<ControllerEvent | null> {
 		const [rows] = await this.pool.execute<ControllerEventRow[]>(
-			`SELECT id, event_type, source, controller_cid, callsign, frequency, occurred_at, created_at
+			`SELECT id, event_type, source, controller_cid, callsign, frequency, payload_json, occurred_at, created_at
 			 FROM controller_events
 			 WHERE id = ?
 			 LIMIT 1`,
@@ -86,7 +97,7 @@ export class ControllerEventStore {
 		const safeLimit = Math.max(1, Math.min(100, limit));
 		const safeOffset = Math.max(0, offset);
 		const [rows] = await this.pool.execute<ControllerEventRow[]>(
-			`SELECT id, event_type, source, controller_cid, callsign, frequency, occurred_at, created_at
+			`SELECT id, event_type, source, controller_cid, callsign, frequency, payload_json, occurred_at, created_at
 			 FROM controller_events
 			 ORDER BY occurred_at DESC
 			 LIMIT ${safeLimit} OFFSET ${safeOffset}`
