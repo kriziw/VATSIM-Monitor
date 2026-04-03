@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.10](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.9...v0.10.10) (2026-04-03)
+
+
+### Bug Fixes
+
+* refresh alert previews when switching template types ([#72](https://github.com/kriziw/VATSIM-Monitor/issues/72)) ([319852a](https://github.com/kriziw/VATSIM-Monitor/commit/319852a919879360b1f9cc7730b68e78e4cd7417))
+
 ## [0.10.9](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.8...v0.10.9) (2026-04-02)
 
 
