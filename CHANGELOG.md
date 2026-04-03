@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.12.1...v0.13.0) (2026-04-03)
+
+
+### Features
+
+* move alert variables into a picker modal ([#85](https://github.com/kriziw/VATSIM-Monitor/issues/85)) ([a9f04f3](https://github.com/kriziw/VATSIM-Monitor/commit/a9f04f39e7164cc06824f6a9d418819bae0c3d79))
+
 ## [0.12.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.12.0...v0.12.1) (2026-04-03)
 
 
