@@ -1,0 +1,3 @@
+ALTER TABLE watch_rules
+ADD COLUMN exclude_observers BOOLEAN NOT NULL DEFAULT FALSE
+AFTER topdown;

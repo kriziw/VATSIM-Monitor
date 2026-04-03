@@ -102,7 +102,8 @@ export function createAccountRouter(
 			const watchRule = await accountService.createWatchRule(
 				authenticatedSession.user.id,
 				typeof req.body?.pattern === "string" ? req.body.pattern : "",
-				req.body?.topdown === true
+				req.body?.topdown === true,
+				req.body?.excludeObservers === true
 			);
 			res.status(201).json(watchRule);
 		} catch (error) {
@@ -124,6 +125,8 @@ export function createAccountRouter(
 		try {
 			const watchRule = await accountService.updateWatchRule(authenticatedSession.user.id, req.params.id, {
 				topdown: typeof req.body?.topdown === "boolean" ? req.body.topdown : undefined,
+				excludeObservers:
+					typeof req.body?.excludeObservers === "boolean" ? req.body.excludeObservers : undefined,
 				isActive: typeof req.body?.isActive === "boolean" ? req.body.isActive : undefined
 			});
 			res.json(watchRule);

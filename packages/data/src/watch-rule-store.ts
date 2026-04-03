@@ -7,6 +7,7 @@ interface WatchRuleRow extends RowDataPacket {
 	user_id: string;
 	pattern: string;
 	topdown: number;
+	exclude_observers: number;
 	is_active: number;
 	created_at: Date;
 }
@@ -17,6 +18,7 @@ function mapWatchRule(row: WatchRuleRow): WatchRule {
 		userId: row.user_id,
 		pattern: row.pattern,
 		topdown: row.topdown === 1,
+		excludeObservers: row.exclude_observers === 1,
 		isActive: row.is_active === 1,
 		createdAt: row.created_at.toISOString()
 	};
@@ -26,12 +28,14 @@ export interface CreateWatchRuleInput {
 	userId: string;
 	pattern: string;
 	topdown: boolean;
+	excludeObservers: boolean;
 }
 
 export interface UpdateWatchRuleInput {
 	id: string;
 	userId: string;
 	topdown?: boolean;
+	excludeObservers?: boolean;
 	isActive?: boolean;
 }
 
@@ -40,7 +44,7 @@ export class WatchRuleStore {
 
 	public async listForUser(userId: string): Promise<WatchRule[]> {
 		const [rows] = await this.pool.execute<WatchRuleRow[]>(
-			`SELECT id, user_id, pattern, topdown, is_active, created_at
+			`SELECT id, user_id, pattern, topdown, exclude_observers, is_active, created_at
 			 FROM watch_rules
 			 WHERE user_id = ?
 			 ORDER BY created_at DESC, pattern ASC`,
@@ -53,9 +57,9 @@ export class WatchRuleStore {
 	public async create(input: CreateWatchRuleInput): Promise<WatchRule> {
 		const id = randomUUID();
 		await this.pool.execute(
-			`INSERT INTO watch_rules (id, user_id, pattern, topdown, is_active)
-			 VALUES (?, ?, ?, ?, TRUE)`,
-			[id, input.userId, input.pattern, input.topdown]
+			`INSERT INTO watch_rules (id, user_id, pattern, topdown, exclude_observers, is_active)
+			 VALUES (?, ?, ?, ?, ?, TRUE)`,
+			[id, input.userId, input.pattern, input.topdown, input.excludeObservers]
 		);
 
 		const created = await this.getById(id, input.userId);
@@ -68,7 +72,7 @@ export class WatchRuleStore {
 
 	public async getById(id: string, userId: string): Promise<WatchRule | null> {
 		const [rows] = await this.pool.execute<WatchRuleRow[]>(
-			`SELECT id, user_id, pattern, topdown, is_active, created_at
+			`SELECT id, user_id, pattern, topdown, exclude_observers, is_active, created_at
 			 FROM watch_rules
 			 WHERE id = ? AND user_id = ?
 			 LIMIT 1`,
@@ -89,6 +93,11 @@ export class WatchRuleStore {
 		if (typeof input.topdown === "boolean") {
 			updates.push("topdown = ?");
 			values.push(input.topdown);
+		}
+
+		if (typeof input.excludeObservers === "boolean") {
+			updates.push("exclude_observers = ?");
+			values.push(input.excludeObservers);
 		}
 
 		if (typeof input.isActive === "boolean") {

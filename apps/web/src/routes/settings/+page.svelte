@@ -81,17 +81,41 @@
 						</div>
 						<div class="meta-row">
 							<span>Top-down {watchRule.topdown ? "enabled" : "off"}</span>
+							<span>Observers {watchRule.excludeObservers ? "excluded" : "included"}</span>
 						</div>
 						<div class="button-row compact-row">
 							<form method="post">
 								<input type="hidden" name="id" value={watchRule.id} />
 								<input type="hidden" name="topdown" value={watchRule.topdown ? "false" : "true"} />
+								<input
+									type="hidden"
+									name="excludeObservers"
+									value={watchRule.excludeObservers ? "true" : "false"}
+								/>
 								<input type="hidden" name="isActive" value={watchRule.isActive ? "true" : "false"} />
 								<button class="button button--secondary" type="submit" formaction="?/toggleWatchRule">Toggle top-down</button>
 							</form>
 							<form method="post">
 								<input type="hidden" name="id" value={watchRule.id} />
 								<input type="hidden" name="topdown" value={watchRule.topdown ? "true" : "false"} />
+								<input
+									type="hidden"
+									name="excludeObservers"
+									value={watchRule.excludeObservers ? "false" : "true"}
+								/>
+								<input type="hidden" name="isActive" value={watchRule.isActive ? "true" : "false"} />
+								<button class="button button--secondary" type="submit" formaction="?/toggleWatchRule">
+									{watchRule.excludeObservers ? "Include OBS" : "Exclude OBS"}
+								</button>
+							</form>
+							<form method="post">
+								<input type="hidden" name="id" value={watchRule.id} />
+								<input type="hidden" name="topdown" value={watchRule.topdown ? "true" : "false"} />
+								<input
+									type="hidden"
+									name="excludeObservers"
+									value={watchRule.excludeObservers ? "true" : "false"}
+								/>
 								<input type="hidden" name="isActive" value={watchRule.isActive ? "false" : "true"} />
 								<button class="button button--secondary" type="submit" formaction="?/toggleWatchRule">
 									{watchRule.isActive ? "Disable" : "Enable"}
@@ -116,6 +140,14 @@
 			<label class="toggle-line">
 				<input name="topdown" type="checkbox" />
 				<span>Enable top-down matching</span>
+			</label>
+			<label class="toggle-line">
+				<input
+					name="excludeObservers"
+					type="checkbox"
+					checked={form?.section === "watchRules" ? Boolean(form?.excludeObservers) : false}
+				/>
+				<span>Exclude observer positions like `_OBS`</span>
 			</label>
 			<button class="button button--primary" type="submit" formaction="?/addWatchRule">Add watch rule</button>
 		</form>
