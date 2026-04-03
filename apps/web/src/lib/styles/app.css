@@ -27,6 +27,17 @@
 		linear-gradient(180deg, #f3f8fd 0%, #eaf1f7 46%, #e2eaf3 100%);
 }
 
+html {
+	box-sizing: border-box;
+	overflow-x: clip;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+}
+
 html,
 body {
 	margin: 0;
@@ -35,6 +46,7 @@ body {
 
 body {
 	min-height: 100vh;
+	overflow-x: clip;
 }
 
 a {
@@ -403,6 +415,12 @@ textarea {
 	margin-top: 0;
 }
 
+.monitor-strip--tight {
+	gap: 8px;
+	margin-top: 8px;
+	max-width: 760px;
+}
+
 .monitor-strip__item {
 	display: grid;
 	gap: 4px;
@@ -680,6 +698,51 @@ textarea {
 
 .dashboard-card--wide {
 	grid-column: 1 / -1;
+}
+
+.monitor-page {
+	gap: 14px;
+}
+
+.monitor-page .dashboard-card {
+	padding: 18px;
+	border-radius: 20px;
+}
+
+.monitor-page .section-heading {
+	margin-bottom: 12px;
+}
+
+.monitor-page .card-list {
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.monitor-page .stack-card,
+.monitor-page .metric {
+	padding: 14px 16px;
+	border-radius: 16px;
+}
+
+.monitor-page .meta-row {
+	margin-top: 8px;
+	gap: 10px;
+	font-size: 0.92rem;
+}
+
+.monitor-page .tag-row {
+	margin-top: 10px;
+	gap: 8px;
+}
+
+.monitor-page .rule-tag {
+	padding: 6px 10px;
+	font-size: 0.8rem;
+}
+
+.monitor-page .empty-state {
+	padding: 14px 16px;
+	border-radius: 16px;
 }
 
 .card-list {
