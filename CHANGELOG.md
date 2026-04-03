@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.11.0...v0.11.1) (2026-04-03)
+
+
+### Bug Fixes
+
+* correct log rotation defaults and bump mariadb ([#77](https://github.com/kriziw/VATSIM-Monitor/issues/77)) ([83e696a](https://github.com/kriziw/VATSIM-Monitor/commit/83e696a5cb324e0534f904902ea8230f8d592fb7))
+
 ## [0.11.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.10.10...v0.11.0) (2026-04-03)
 
 
