@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.11.2...v0.12.0) (2026-04-03)
+
+
+### Features
+
+* support excluding observer positions from watch rules ([#81](https://github.com/kriziw/VATSIM-Monitor/issues/81)) ([57b9d3b](https://github.com/kriziw/VATSIM-Monitor/commit/57b9d3b740caff719f4e27e484e137c8df084f10))
+
 ## [0.11.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.11.1...v0.11.2) (2026-04-03)
 
 
