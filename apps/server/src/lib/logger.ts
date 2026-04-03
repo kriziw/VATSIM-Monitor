@@ -56,6 +56,7 @@ function toErrorMeta(error: unknown): Record<string, unknown> {
 }
 
 export class AppLogger {
+	public static readonly DEFAULT_LOG_FILE_SIZE_BYTES = 100 * 1024 * 1024;
 	public static readonly MAX_LOG_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 	private readonly directory: string;
 	private readonly fileName: string;
@@ -248,7 +249,7 @@ export class AppLogger {
 
 	private normalizeMaxFileSizeBytes(value: number): number {
 		if (!Number.isFinite(value)) {
-			return AppLogger.MAX_LOG_FILE_SIZE_BYTES;
+			return AppLogger.DEFAULT_LOG_FILE_SIZE_BYTES;
 		}
 
 		return Math.min(Math.max(Math.floor(value), 32_768), AppLogger.MAX_LOG_FILE_SIZE_BYTES);

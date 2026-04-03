@@ -130,11 +130,14 @@ The default `docker-compose.yml` now targets the published Docker Hub images so 
 1. Copy [.env.docker.example](.env.docker.example) to `.env`.
 2. Update at least `MYSQL_ROOT_PASSWORD` and `MYSQL_PASSWORD`.
 3. Optionally change `SERVER_PORT`, `WEB_PORT`, or `APP_VERSION`.
-4. Run `docker compose pull`.
-5. Run `docker compose up -d`.
+4. Optionally pin `MARIADB_VERSION` if you need a different compatible MariaDB image tag.
+5. Run `docker compose pull`.
+6. Run `docker compose up -d`.
 
 The server now keeps built-in rotating log files and can expose recent entries inside the signed-in web UI on `/logs` when that troubleshooting page is enabled from Settings for an account.
 You can also raise or lower backend verbosity with `LOG_LEVEL` (`debug`, `info`, `warn`, `error`).
+The default log rotation size is 100 MB per file, capped at 500 MB.
+The default Docker deployment now targets MariaDB `11.8`, and you can override that with `MARIADB_VERSION` if needed.
 
 ### Reverse Proxy Setup
 

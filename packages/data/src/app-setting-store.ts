@@ -1,6 +1,7 @@
 import type { Pool, RowDataPacket } from "mysql2/promise";
 import type { AppSettings } from "@vatsim-monitor/domain";
 
+const DEFAULT_LOG_FILE_SIZE_BYTES = 100 * 1024 * 1024;
 const MAX_LOG_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 
 interface AppSettingRow extends RowDataPacket {
@@ -10,7 +11,7 @@ interface AppSettingRow extends RowDataPacket {
 
 function clampLogSize(value: number): number {
 	if (!Number.isFinite(value)) {
-		return MAX_LOG_FILE_SIZE_BYTES;
+		return DEFAULT_LOG_FILE_SIZE_BYTES;
 	}
 
 	return Math.min(Math.max(Math.floor(value), 1 * 1024 * 1024), MAX_LOG_FILE_SIZE_BYTES);
@@ -28,7 +29,9 @@ export class AppSettingStore {
 
 		const valueByKey = new Map(rows.map((row) => [row.setting_key, row.setting_value]));
 		return {
-			logMaxFileSizeBytes: clampLogSize(Number(valueByKey.get("log_max_file_size_bytes") || MAX_LOG_FILE_SIZE_BYTES))
+			logMaxFileSizeBytes: clampLogSize(
+				Number(valueByKey.get("log_max_file_size_bytes") || DEFAULT_LOG_FILE_SIZE_BYTES)
+			)
 		};
 	}
 

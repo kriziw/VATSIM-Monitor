@@ -199,7 +199,7 @@
 				{/if}
 				<form class="form-grid form-grid--compact compact-row" method="post">
 					<input
-						max="100"
+						max="500"
 						min="1"
 						name="logMaxFileSizeMb"
 						step="1"

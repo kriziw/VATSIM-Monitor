@@ -49,6 +49,8 @@ Most important values:
   Docker Hub namespace used by compose. Default: `kriziw`
 - `APP_VERSION`
   Published image tag to pull. Default: `latest`
+- `MARIADB_VERSION`
+  MariaDB image tag used by compose. Default: `11.8`
 - `MYSQL_ROOT_PASSWORD`
   MariaDB root password
 - `MYSQL_DATABASE`
@@ -80,7 +82,7 @@ Most important values:
 - `LOG_LEVEL`
   Minimum backend log level to write. Use `debug`, `info`, `warn`, or `error`. Default: `info`
 - `LOG_MAX_FILE_SIZE_BYTES`
-  Maximum size of each server log file before rotation. Default: `1048576`
+  Maximum size of each server log file before rotation. Default: `104857600` (100 MB)
 - `LOG_MAX_FILES`
   Number of archived log files to retain. Default: `5`
 - `VATSIM_OAUTH_ENABLED`
@@ -126,7 +128,11 @@ docker compose up -d
 
 ## In-App Logs
 
-The backend keeps rotating log files on disk, but the `/logs` page is hidden by default in the web app. A signed-in user can enable it from `Settings` when they want troubleshooting access, and the page itself starts with auto-refresh paused so the log view does not jump around by default.
+The backend keeps rotating log files on disk, but the `/logs` page is hidden by default in the web app. A signed-in user can enable it from `Settings` when they want troubleshooting access, and the page itself starts with live updates turned off so the log view does not jump around by default.
+
+## MariaDB Upgrade Note
+
+The default compose image now uses MariaDB `11.8`. No application schema migration is required for this bump because the app uses its own SQL migrations separately, but an existing MariaDB data volume should still be backed up before the first startup on a newer engine version. MariaDB will handle its own on-disk upgrade path when the container starts against an older data directory.
 
 ## Building From Source
 
