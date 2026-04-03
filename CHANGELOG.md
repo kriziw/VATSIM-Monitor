@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.13.1...v0.13.2) (2026-04-03)
+
+
+### Bug Fixes
+
+* tighten monitor layout and prevent shell overflow ([#89](https://github.com/kriziw/VATSIM-Monitor/issues/89)) ([aa0832e](https://github.com/kriziw/VATSIM-Monitor/commit/aa0832e9834e55fb8c1ee6e78be150958e7cc220))
+
 ## [0.13.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.13.0...v0.13.1) (2026-04-03)
 
 
