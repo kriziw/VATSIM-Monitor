@@ -32,6 +32,10 @@ function patternMatches(pattern: string, callsign: string): boolean {
 	return regex.test(callsign);
 }
 
+function isObserverCallsign(callsign: string): boolean {
+	return callsign.trim().toUpperCase().endsWith("_OBS");
+}
+
 function colorToDecimal(color: string): number {
 	return Number.parseInt(color.replace(/^#/, ""), 16);
 }
@@ -235,6 +239,10 @@ export class MonitoringService {
 		const relatedCallsigns = new Set<string>([normalizedCallsign]);
 
 		for (const watchRule of watchRules) {
+			if (watchRule.excludeObservers && isObserverCallsign(callsign)) {
+				continue;
+			}
+
 			if (patternMatches(watchRule.pattern, callsign)) {
 				matchedRules.push({
 					watchRuleId: watchRule.id,
@@ -256,6 +264,10 @@ export class MonitoringService {
 
 			for (const relatedCallsign of relatedCallsigns) {
 				if (relatedCallsign === normalizedCallsign) {
+					continue;
+				}
+
+				if (watchRule.excludeObservers && isObserverCallsign(relatedCallsign)) {
 					continue;
 				}
 
@@ -416,6 +428,10 @@ export class MonitoringService {
 		const matchingTargets = new Map<string, (typeof routedTargets)[number]>();
 		for (const target of routedTargets) {
 			const destinationKey = target.destination.trim().toLowerCase();
+			if (target.excludeObservers && isObserverCallsign(controller.callsign)) {
+				continue;
+			}
+
 			if (patternMatches(target.pattern, controller.callsign)) {
 				matchingTargets.set(destinationKey, target);
 				continue;
@@ -427,6 +443,10 @@ export class MonitoringService {
 
 			for (const relatedCallsign of relatedCallsigns) {
 				if (relatedCallsign === controller.callsign) {
+					continue;
+				}
+
+				if (target.excludeObservers && isObserverCallsign(relatedCallsign)) {
 					continue;
 				}
 

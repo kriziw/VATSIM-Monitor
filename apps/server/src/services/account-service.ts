@@ -205,7 +205,12 @@ export class AccountService {
 		return appSettings;
 	}
 
-	public async createWatchRule(userId: string, pattern: string, topdown: boolean): Promise<WatchRule> {
+	public async createWatchRule(
+		userId: string,
+		pattern: string,
+		topdown: boolean,
+		excludeObservers: boolean
+	): Promise<WatchRule> {
 		const normalizedPattern = normalizePattern(pattern);
 		validatePattern(normalizedPattern);
 
@@ -213,7 +218,8 @@ export class AccountService {
 			return await this.watchRuleStore.create({
 				userId,
 				pattern: normalizedPattern,
-				topdown
+				topdown,
+				excludeObservers
 			});
 		} catch (error: any) {
 			if (error?.code === "ER_DUP_ENTRY") {
@@ -227,12 +233,13 @@ export class AccountService {
 	public async updateWatchRule(
 		userId: string,
 		id: string,
-		update: { topdown?: boolean; isActive?: boolean }
+		update: { topdown?: boolean; excludeObservers?: boolean; isActive?: boolean }
 	): Promise<WatchRule> {
 		const watchRule = await this.watchRuleStore.update({
 			id,
 			userId,
 			topdown: update.topdown,
+			excludeObservers: update.excludeObservers,
 			isActive: update.isActive
 		});
 

@@ -8,6 +8,7 @@ export interface RoutedDiscordTarget {
 	userId: string;
 	pattern: string;
 	topdown: boolean;
+	excludeObservers: boolean;
 	channelId: string;
 	channelDisplayName: string | null;
 	destination: string;
@@ -18,6 +19,7 @@ interface RoutedDiscordTargetRow extends RowDataPacket {
 	user_id: string;
 	pattern: string;
 	topdown: number;
+	exclude_observers: number;
 	channel_id: string;
 	channel_display_name: string | null;
 	destination: string;
@@ -43,6 +45,7 @@ export class NotificationRoutingStore {
 				wr.user_id,
 				wr.pattern,
 				wr.topdown,
+				wr.exclude_observers,
 				nc.id AS channel_id,
 				nc.display_name AS channel_display_name,
 				nc.destination,
@@ -59,6 +62,7 @@ export class NotificationRoutingStore {
 			userId: row.user_id,
 			pattern: row.pattern,
 			topdown: row.topdown === 1,
+			excludeObservers: row.exclude_observers === 1,
 			channelId: row.channel_id,
 			channelDisplayName: row.channel_display_name,
 			destination: row.destination,

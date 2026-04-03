@@ -189,6 +189,7 @@ export interface WatchRule {
 	userId: string;
 	pattern: string;
 	topdown: boolean;
+	excludeObservers: boolean;
 	isActive: boolean;
 	createdAt: string;
 }

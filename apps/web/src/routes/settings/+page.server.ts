@@ -39,15 +39,18 @@ export const actions = {
 		const form = await request.formData();
 		const pattern = String(form.get("pattern") || "");
 		const topdown = form.get("topdown") === "on";
+		const excludeObservers = form.get("excludeObservers") === "on";
 
 		try {
-			await createWatchRule(sessionId, { pattern, topdown });
+			await createWatchRule(sessionId, { pattern, topdown, excludeObservers });
 			return { success: true };
 		} catch (error: any) {
 			return fail(error?.status || 500, {
 				section: "watchRules",
 				message: error?.body?.message ?? error?.message ?? "Unable to add watch rule.",
-				pattern
+				pattern,
+				excludeObservers,
+				topdown
 			});
 		}
 	},
@@ -60,10 +63,11 @@ export const actions = {
 		const form = await request.formData();
 		const id = String(form.get("id") || "");
 		const topdown = form.get("topdown") === "true";
+		const excludeObservers = form.get("excludeObservers") === "true";
 		const isActive = form.get("isActive") === "true";
 
 		try {
-			await updateWatchRule(sessionId, id, { topdown, isActive });
+			await updateWatchRule(sessionId, id, { topdown, excludeObservers, isActive });
 			return { success: true };
 		} catch (error: any) {
 			return fail(error?.status || 500, {

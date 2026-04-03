@@ -164,7 +164,10 @@ export async function fetchRecentControllerEvents(limit = 10): Promise<Controlle
 	return response.json();
 }
 
-export async function createWatchRule(sessionId: string, body: { pattern: string; topdown: boolean }) {
+export async function createWatchRule(
+	sessionId: string,
+	body: { pattern: string; topdown: boolean; excludeObservers: boolean }
+) {
 	return requestWithSession(sessionId, "/api/v1/watch-rules", {
 		method: "POST",
 		body
@@ -174,12 +177,13 @@ export async function createWatchRule(sessionId: string, body: { pattern: string
 export async function updateWatchRule(
 	sessionId: string,
 	id: string,
-	body: { isActive?: boolean; topdown?: boolean }
+	body: { isActive?: boolean; topdown?: boolean; excludeObservers?: boolean }
 ) {
 	return requestWithSession(sessionId, `/api/v1/watch-rules/${id}`, {
 		method: "PATCH",
 		body: {
 			topdown: typeof body.topdown === "boolean" ? body.topdown : null,
+			excludeObservers: typeof body.excludeObservers === "boolean" ? body.excludeObservers : null,
 			isActive: typeof body.isActive === "boolean" ? body.isActive : null
 		}
 	});
