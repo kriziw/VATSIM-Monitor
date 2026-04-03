@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.3](https://github.com/kriziw/VATSIM-Monitor/compare/v0.13.2...v0.13.3) (2026-04-03)
+
+
+### Bug Fixes
+
+* compact the settings page layout ([#91](https://github.com/kriziw/VATSIM-Monitor/issues/91)) ([6940c3c](https://github.com/kriziw/VATSIM-Monitor/commit/6940c3cf3975329dfed3d7f3f13cb87adad482c1))
+
 ## [0.13.2](https://github.com/kriziw/VATSIM-Monitor/compare/v0.13.1...v0.13.2) (2026-04-03)
 
 
