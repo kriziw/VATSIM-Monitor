@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.13.0...v0.13.1) (2026-04-03)
+
+
+### Bug Fixes
+
+* use a full-width application shell ([#87](https://github.com/kriziw/VATSIM-Monitor/issues/87)) ([77784eb](https://github.com/kriziw/VATSIM-Monitor/commit/77784ebec2860f4a3b98f53656b1ed47a7b8d2aa))
+
 ## [0.13.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.12.1...v0.13.0) (2026-04-03)
 
 
