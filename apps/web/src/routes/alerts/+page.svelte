@@ -436,112 +436,134 @@
 </section>
 
 <section class="section dashboard-stack">
-	<article class="dashboard-card dashboard-card--wide">
-		<div class="section-heading">
-			<h2>Destinations</h2>
-		</div>
-		<p class="muted compact-lead">Create one destination per webhook, then pick it below to edit its linked rules and alert templates.</p>
-
-		{#if form?.section === "notificationChannels"}
-			<div class="form-error">{form.message}</div>
-		{/if}
-
-		{#if data.notificationChannels.length === 0}
-			<p class="empty-state">No alert destinations yet. Add a Discord webhook below to start sending staffing notifications.</p>
-		{:else}
-			<div class="channel-selector">
-				{#each data.notificationChannels as channel}
-					<button
-						class={`channel-selector__item ${selectedChannelId === channel.id ? "channel-selector__item--active" : ""}`}
-						type="button"
-						on:click={() => {
-							selectedChannelId = channel.id;
-							selectedTemplate = "controllerOnline";
-						}}
-					>
-						<strong>{channel.displayName ?? "Discord destination"}</strong>
-						<span>{channel.destinationMasked}</span>
-						<em>{channel.watchRuleIds.length} rule{channel.watchRuleIds.length === 1 ? "" : "s"} linked</em>
-					</button>
-				{/each}
-			</div>
-		{/if}
-
-		<form class="form-grid form-grid--compact alert-add-form" method="post">
-			<input
-				name="displayName"
-				placeholder="Tower alerts"
-				value={form?.section === "notificationChannels" ? form?.displayName ?? "" : ""}
-			/>
-			<input
-				name="destination"
-				placeholder="https://discord.com/api/webhooks/..."
-				value={form?.section === "notificationChannels" ? form?.destination ?? "" : ""}
-			/>
-			<button class="button button--primary" type="submit" formaction="?/addNotificationChannel">Add destination</button>
-		</form>
-
-		{#if selectedChannel}
-			<form class="button-row compact-row" method="post">
-				<input type="hidden" name="id" value={selectedChannel.id} />
-				<input type="hidden" name="selectedTemplate" value={selectedTemplate} />
-				<button class="button button--secondary" type="submit" formaction="?/deleteNotificationChannel">
-					Delete selected destination
-				</button>
-			</form>
-		{/if}
-	</article>
-
-	{#if selectedChannel && activeTemplateState}
-		<article class="dashboard-card dashboard-card--wide">
+	<div class="alerts-layout">
+		<article class="dashboard-card alerts-sidebar">
 			<div class="section-heading">
-				<div>
-					<h2>Editor</h2>
-					<p class="muted alert-editor__subtitle">
-						Editing <strong>{selectedChannel.displayName ?? "Discord destination"}</strong> for <span class="mono">{selectedChannel.destinationMasked}</span>
-					</p>
-				</div>
-				<span class="status-chip {selectedChannel.isActive ? 'status-chip--ok' : 'status-chip--muted'}">
-					{selectedChannel.isActive ? "Destination active" : "Destination disabled"}
-				</span>
+				<h2>1. Destinations</h2>
 			</div>
+			<p class="muted compact-lead">
+				Create one Discord alert destination per webhook, then choose an alert name to edit its rules and templates.
+			</p>
 
-			<form class="alerts-workspace" method="post">
-				<div class="alerts-workspace__main alerts-workspace__main--compact">
+			{#if form?.section === "notificationChannels"}
+				<div class="form-error">{form.message}</div>
+			{/if}
+
+			{#if data.notificationChannels.length === 0}
+				<p class="empty-state">No alert destinations yet. Add a Discord webhook below to start sending staffing notifications.</p>
+			{:else}
+				<div class="alerts-destination-list">
+					{#each data.notificationChannels as channel}
+						<button
+							class={`alerts-destination-item ${selectedChannelId === channel.id ? "alerts-destination-item--active" : ""}`}
+							type="button"
+							on:click={() => {
+								selectedChannelId = channel.id;
+								selectedTemplate = "controllerOnline";
+							}}
+						>
+							<div class="alerts-destination-item__head">
+								<strong>{channel.displayName ?? "Unnamed alert"}</strong>
+								<span class="status-chip {channel.isActive ? 'status-chip--ok' : 'status-chip--muted'}">
+									{channel.isActive ? "On" : "Off"}
+								</span>
+							</div>
+							<span>{channel.destinationMasked}</span>
+							<em>{channel.watchRuleIds.length} linked rule{channel.watchRuleIds.length === 1 ? "" : "s"}</em>
+						</button>
+					{/each}
+				</div>
+			{/if}
+
+			<form class="alerts-create-form" method="post">
+				<label>
+					<span>Destination name</span>
+					<input
+						name="displayName"
+						placeholder="Tower alerts"
+						value={form?.section === "notificationChannels" ? form?.displayName ?? "" : ""}
+					/>
+				</label>
+				<label>
+					<span>Webhook URL</span>
+					<input
+						name="destination"
+						placeholder="https://discord.com/api/webhooks/..."
+						value={form?.section === "notificationChannels" ? form?.destination ?? "" : ""}
+					/>
+				</label>
+				<button class="button button--primary" type="submit" formaction="?/addNotificationChannel">Add destination</button>
+			</form>
+
+			{#if selectedChannel}
+				<form class="button-row compact-row" method="post">
+					<input type="hidden" name="id" value={selectedChannel.id} />
+					<input type="hidden" name="selectedTemplate" value={selectedTemplate} />
+					<button class="button button--secondary" type="submit" formaction="?/deleteNotificationChannel">
+						Delete selected destination
+					</button>
+				</form>
+			{/if}
+		</article>
+
+		{#if selectedChannel && activeTemplateState}
+			<article class="dashboard-card alerts-editor-shell">
+				<div class="section-heading">
+					<div>
+						<h2>2. Configure destination</h2>
+						<p class="muted alert-editor__subtitle">
+							Editing alert <strong>{selectedChannel.displayName ?? "Unnamed alert"}</strong>
+						</p>
+					</div>
+					<span class="status-chip {selectedChannel.isActive ? 'status-chip--ok' : 'status-chip--muted'}">
+						{selectedChannel.isActive ? "Destination active" : "Destination disabled"}
+					</span>
+				</div>
+
+				<form class="alerts-editor-form" method="post">
 					<input type="hidden" name="id" value={selectedChannel.id} />
 					<input type="hidden" name="selectedTemplate" value={selectedTemplate} />
 					<input type="hidden" name="isActive" value={selectedChannel.isActive ? "false" : "true"} />
 
-					<div class="alert-config-grid">
-						<label>
-							<span>Destination name</span>
-							<input
-								name="displayName"
-								placeholder="Tower alerts"
-								value={channelFieldValue(selectedChannel, "displayName")}
-							/>
-						</label>
+					<div class="alerts-editor-top">
+						<section class="alerts-panel">
+							<div class="alerts-panel__head">
+								<strong>Destination details</strong>
+								<span class="muted compact-note">One webhook, three alert templates.</span>
+							</div>
+							<div class="alert-config-grid">
+								<label>
+									<span>Destination name</span>
+									<input
+										name="displayName"
+										placeholder="Tower alerts"
+										value={channelFieldValue(selectedChannel, "displayName")}
+									/>
+								</label>
+								<label>
+									<span>Replace webhook URL</span>
+									<input
+										name="destination"
+										placeholder="Leave blank to keep the current webhook"
+										value={channelFieldValue(selectedChannel, "destination")}
+									/>
+								</label>
+							</div>
+						</section>
 
-						<label>
-							<span>Replace webhook URL</span>
-							<input
-								name="destination"
-								placeholder="Leave blank to keep the current webhook"
-								value={channelFieldValue(selectedChannel, "destination")}
-							/>
-						</label>
-					</div>
-					<p class="muted compact-note">A destination sends all enabled alert types for the rules selected below.</p>
-
-					<div class="alert-overview-grid">
-						<div class="template-detail">
-							<strong>Watch rules</strong>
+						<section class="alerts-panel">
+							<div class="alerts-panel__head">
+								<strong>Watch rules</strong>
+								<span class="muted compact-note">
+									{(watchRuleSelections[selectedChannel.id] ?? []).length} selected
+								</span>
+							</div>
 							{#if data.watchRules.length === 0}
 								<p class="empty-state">No watch rules yet. Add them on Settings first.</p>
 							{:else}
-								<div class="rule-picker rule-picker--compact">
+								<div class="rule-picker rule-picker--tight">
 									{#each data.watchRules as watchRule}
-										<label class="rule-picker__item">
+										<label class="rule-picker__item rule-picker__item--tight">
 											<input
 												type="checkbox"
 												name="watchRuleIds"
@@ -557,134 +579,180 @@
 									{/each}
 								</div>
 							{/if}
-							{#if (watchRuleSelections[selectedChannel.id] ?? []).length === 0}
-								<p class="muted compact-note">No rules linked yet.</p>
-							{/if}
-						</div>
+						</section>
 
-						<div class="template-detail">
-							<strong>Alert types</strong>
-							<div class="subtype-toggle-grid subtype-toggle-grid--compact">
+						<section class="alerts-panel">
+							<div class="alerts-panel__head">
+								<strong>Enabled alert types</strong>
+								<span class="muted compact-note">Toggle delivery per event.</span>
+							</div>
+							<div class="alerts-toggle-list">
 								{#each templateSections as section}
-									<label class="rule-picker__item">
+									<label class="alerts-toggle-pill">
 										<input
 											type="checkbox"
 											checked={editorState[selectedChannel.id][section.key].enabled}
 											on:change={(event) => updateEnabled(section.key, event.currentTarget.checked)}
 										/>
-										<div>
-											<strong>{section.tabLabel}</strong>
-											<span>{editorState[selectedChannel.id][section.key].enabled ? "On" : "Off"}</span>
-										</div>
+										<span>{section.tabLabel}</span>
 									</label>
 								{/each}
 							</div>
-						</div>
+						</section>
 					</div>
 
-					<div class="template-toolbar">
-						<div class="template-selector">
-							{#each templateSections as section}
-								<button
-									class={`template-selector__item ${selectedTemplate === section.key ? "template-selector__item--active" : ""}`}
-									type="button"
-									on:click={() => {
-										selectedTemplate = section.key;
-									}}
-								>
-									<strong>{section.tabLabel}</strong>
-								</button>
-							{/each}
-						</div>
-						<p class="muted alert-template-note">
-							<strong>{activeTemplateSection.title}.</strong> {activeTemplateSection.description}
-						</p>
-					</div>
-
-					{#key `${selectedChannel.id}:${selectedTemplate}`}
-					<div class="compact-editor-grid">
-						<label class={`compact-editor-field ${activeField === "titleTemplate" ? "compact-editor-field--active" : ""}`}>
-							<span>Title</span>
-							<input
-								bind:this={titleInput}
-								value={activeTemplateState.titleTemplate}
-								on:focus={() => {
-									activeField = "titleTemplate";
-								}}
-								on:input={(event) => updateField("titleTemplate", event.currentTarget.value)}
-								on:dragover|preventDefault
-								on:drop={(event) => handleVariableDrop(event, "titleTemplate")}
-							/>
-						</label>
-
-						<label class={`compact-editor-field compact-editor-field--large ${activeField === "descriptionTemplate" ? "compact-editor-field--active" : ""}`}>
-							<span>Description</span>
-							<textarea
-								bind:this={descriptionInput}
-								rows="6"
-								value={activeTemplateState.descriptionTemplate}
-								on:focus={() => {
-									activeField = "descriptionTemplate";
-								}}
-								on:input={(event) => updateField("descriptionTemplate", event.currentTarget.value)}
-								on:dragover|preventDefault
-								on:drop={(event) => handleVariableDrop(event, "descriptionTemplate")}
-							></textarea>
-						</label>
-
-						<label class={`compact-editor-field ${activeField === "contentTemplate" ? "compact-editor-field--active" : ""}`}>
-							<span>Additional content</span>
-							<textarea
-								bind:this={contentInput}
-								rows="3"
-								value={activeTemplateState.contentTemplate}
-								on:focus={() => {
-									activeField = "contentTemplate";
-								}}
-								on:input={(event) => updateField("contentTemplate", event.currentTarget.value)}
-								on:dragover|preventDefault
-								on:drop={(event) => handleVariableDrop(event, "contentTemplate")}
-							></textarea>
-						</label>
-
-						<label class="compact-editor-field">
-							<span>Embed colour</span>
-							<div class="color-picker-row">
-								{#key colorValue()}
-								<button
-									class="color-picker-row__swatch"
-									type="button"
-									aria-label="Choose embed colour"
-									title={colorValue()}
-									style={`background: ${colorValue()}`}
-									on:click={openColorPicker}
-								></button>
-								{/key}
-								<input
-									bind:this={colorInput}
-									class="color-picker-row__native"
-									type="color"
-									value={colorValue()}
-									aria-hidden="true"
-									tabindex="-1"
-									on:input={(event) => updateColor(event.currentTarget.value.toUpperCase())}
-								/>
-								<input
-									class="color-picker-row__hex"
-									placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
-									value={activeTemplateState.color}
-									on:input={(event) => updateColor(event.currentTarget.value)}
-								/>
+					<section class="alerts-panel alerts-panel--composer">
+						<div class="alerts-composer__head">
+							<div>
+								<div class="eyebrow alerts-step">3. Template editor</div>
+								<div class="template-selector template-selector--segmented">
+									{#each templateSections as section}
+										<button
+											class={`template-selector__item ${selectedTemplate === section.key ? "template-selector__item--active" : ""}`}
+											type="button"
+											on:click={() => {
+												selectedTemplate = section.key;
+											}}
+										>
+											<strong>{section.tabLabel}</strong>
+										</button>
+									{/each}
+								</div>
 							</div>
-						</label>
-					</div>
-					{/key}
+							<p class="muted alert-template-note">
+								<strong>{activeTemplateSection.title}.</strong> {activeTemplateSection.description}
+							</p>
+						</div>
 
-					<input
-						type="hidden"
-						name="configJson"
-						value={JSON.stringify(editorState[selectedChannel.id])}
-					/>
+						{#key `${selectedChannel.id}:${selectedTemplate}`}
+							<div class="alerts-composer">
+								<div class="alerts-composer__editor">
+									<label class={`compact-editor-field ${activeField === "titleTemplate" ? "compact-editor-field--active" : ""}`}>
+										<span>Title</span>
+										<input
+											bind:this={titleInput}
+											value={activeTemplateState.titleTemplate}
+											on:focus={() => {
+												activeField = "titleTemplate";
+											}}
+											on:input={(event) => updateField("titleTemplate", event.currentTarget.value)}
+											on:dragover|preventDefault
+											on:drop={(event) => handleVariableDrop(event, "titleTemplate")}
+										/>
+									</label>
+
+									<label class={`compact-editor-field compact-editor-field--large ${activeField === "descriptionTemplate" ? "compact-editor-field--active" : ""}`}>
+										<span>Description</span>
+										<textarea
+											bind:this={descriptionInput}
+											rows="6"
+											value={activeTemplateState.descriptionTemplate}
+											on:focus={() => {
+												activeField = "descriptionTemplate";
+											}}
+											on:input={(event) => updateField("descriptionTemplate", event.currentTarget.value)}
+											on:dragover|preventDefault
+											on:drop={(event) => handleVariableDrop(event, "descriptionTemplate")}
+										></textarea>
+									</label>
+
+									<div class="alerts-composer__row">
+										<label class={`compact-editor-field ${activeField === "contentTemplate" ? "compact-editor-field--active" : ""}`}>
+											<span>Additional content</span>
+											<textarea
+												bind:this={contentInput}
+												rows="3"
+												value={activeTemplateState.contentTemplate}
+												on:focus={() => {
+													activeField = "contentTemplate";
+												}}
+												on:input={(event) => updateField("contentTemplate", event.currentTarget.value)}
+												on:dragover|preventDefault
+												on:drop={(event) => handleVariableDrop(event, "contentTemplate")}
+											></textarea>
+										</label>
+
+										<label class="compact-editor-field compact-editor-field--color">
+											<span>Embed colour</span>
+											<div class="color-picker-row">
+												{#key colorValue()}
+													<button
+														class="color-picker-row__swatch"
+														type="button"
+														aria-label="Choose embed colour"
+														title={colorValue()}
+														style={`background: ${colorValue()}`}
+														on:click={openColorPicker}
+													></button>
+												{/key}
+												<input
+													bind:this={colorInput}
+													class="color-picker-row__native"
+													type="color"
+													value={colorValue()}
+													aria-hidden="true"
+													tabindex="-1"
+													on:input={(event) => updateColor(event.currentTarget.value.toUpperCase())}
+												/>
+												<input
+													class="color-picker-row__hex"
+													placeholder={getDefaultDiscordNotificationTemplate(selectedTemplate).color ?? "#1C7F58"}
+													value={activeTemplateState.color}
+													on:input={(event) => updateColor(event.currentTarget.value)}
+												/>
+											</div>
+										</label>
+									</div>
+								</div>
+
+								<aside class="alerts-composer__aside">
+									<div class="template-detail template-detail--compact">
+										<strong>Live preview</strong>
+										<div class="preview-card" style={`--preview-color: ${activeTemplateState.color || "#0C2746"}`}>
+											<div class="preview-card__header">
+												<span class="preview-card__label">{activeTemplateSection.title}</span>
+												<strong>{renderedPreview("titleTemplate")}</strong>
+											</div>
+											<p>{renderedPreview("descriptionTemplate")}</p>
+											{#if renderedPreview("contentTemplate") !== "No plain-text content for this alert."}
+												<div class="preview-card__content">{renderedPreview("contentTemplate")}</div>
+											{/if}
+										</div>
+									</div>
+
+									<div class="template-detail template-detail--compact">
+										<div class="template-detail__head">
+											<strong>Variables</strong>
+											<span class="muted compact-note">Click or drag into the active field.</span>
+										</div>
+										<div class="token-board token-board--compact">
+											{#each activeTemplateSection.variables as variable}
+												<button
+													class="token-chip"
+													type="button"
+													draggable="true"
+													on:click={() => insertVariable(activeField, variable)}
+													on:dragstart={(event) => handleVariableDragStart(event, variable)}
+												>
+													<code>{variable}</code>
+												</button>
+											{/each}
+										</div>
+										<div class="template-variable-list template-variable-list--stack">
+											{#each activeTemplateSection.variables as variable}
+												<div class="template-variable-row">
+													<code>{variable}</code>
+													<span>{variableDescriptions[variable]}</span>
+												</div>
+											{/each}
+										</div>
+									</div>
+								</aside>
+							</div>
+						{/key}
+					</section>
+
+					<input type="hidden" name="configJson" value={JSON.stringify(editorState[selectedChannel.id])} />
 
 					<div class="button-row compact-row">
 						<button class="button button--primary" type="submit" formaction="?/saveNotificationChannel">
@@ -694,54 +762,8 @@
 							{selectedChannel.isActive ? "Disable destination" : "Enable destination"}
 						</button>
 					</div>
-				</div>
-
-				<aside class="alerts-workspace__sidebar">
-					{#key `${selectedChannel.id}:${selectedTemplate}`}
-					<div class="template-detail template-detail--compact">
-						<strong>Live preview</strong>
-						<div class="preview-card" style={`--preview-color: ${activeTemplateState.color || "#0C2746"}`}>
-							<div class="preview-card__header">
-								<span class="preview-card__label">{activeTemplateSection.title}</span>
-								<strong>{renderedPreview("titleTemplate")}</strong>
-							</div>
-							<p>{renderedPreview("descriptionTemplate")}</p>
-							{#if renderedPreview("contentTemplate") !== "No plain-text content for this alert."}
-								<div class="preview-card__content">{renderedPreview("contentTemplate")}</div>
-							{/if}
-						</div>
-					</div>
-					{/key}
-
-					<div class="template-detail template-detail--compact">
-						<div class="template-detail__head">
-							<strong>Variables</strong>
-							<span class="muted compact-note">Click or drag into the active field.</span>
-						</div>
-						<div class="token-board token-board--compact">
-							{#each activeTemplateSection.variables as variable}
-								<button
-									class="token-chip"
-									type="button"
-									draggable="true"
-									on:click={() => insertVariable(activeField, variable)}
-									on:dragstart={(event) => handleVariableDragStart(event, variable)}
-								>
-									<code>{variable}</code>
-								</button>
-							{/each}
-						</div>
-						<div class="template-variable-list template-variable-list--compact">
-							{#each activeTemplateSection.variables as variable}
-								<div class="template-variable-row">
-									<code>{variable}</code>
-									<span>{variableDescriptions[variable]}</span>
-								</div>
-							{/each}
-						</div>
-					</div>
-				</aside>
-			</form>
-		</article>
-	{/if}
+				</form>
+			</article>
+		{/if}
+	</div>
 </section>
