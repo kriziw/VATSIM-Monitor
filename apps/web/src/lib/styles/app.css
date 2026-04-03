@@ -1309,6 +1309,21 @@ textarea {
 	color: var(--navy);
 }
 
+.logs-filter input {
+	padding: 10px 14px;
+	border-radius: 14px;
+	border: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.9);
+	color: var(--navy);
+}
+
+.logs-export-grid {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: end;
+	gap: 14px;
+}
+
 .toggle-chip {
 	display: inline-flex;
 	align-items: center;

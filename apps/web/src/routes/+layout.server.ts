@@ -21,6 +21,8 @@ export const load = (async ({ locals }) => {
 			}))
 		: null;
 
+	locals.preferences = preferences;
+
 	return {
 		session: locals.session,
 		preferences,

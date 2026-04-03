@@ -20,6 +20,12 @@ export interface LoggerOptions {
 	echoToConsole?: boolean;
 }
 
+export interface LogQueryOptions {
+	limit?: number;
+	minLevel?: LogLevel;
+	since?: Date;
+}
+
 const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 	debug: 10,
 	info: 20,
@@ -92,7 +98,15 @@ export class AppLogger {
 	}
 
 	public async listRecent(limit = 200): Promise<LogEntry[]> {
-		const safeLimit = Math.min(Math.max(limit, 1), 1000);
+		return this.query({
+			limit
+		});
+	}
+
+	public async query(options: LogQueryOptions = {}): Promise<LogEntry[]> {
+		const safeLimit = Math.min(Math.max(options.limit ?? 200, 1), 5000);
+		const minLevel = options.minLevel ?? "debug";
+		const sinceMs = options.since ? options.since.getTime() : null;
 		const entries: LogEntry[] = [];
 
 		for (const filePath of this.getLogFilePaths()) {
@@ -103,17 +117,19 @@ export class AppLogger {
 
 			const lines = raw.split(/\r?\n/).filter((line) => line.trim().length > 0);
 			for (let index = lines.length - 1; index >= 0; index -= 1) {
+				let entry: LogEntry;
+
 				try {
 					const parsed = JSON.parse(lines[index]) as LogEntry;
-					entries.push({
+					entry = {
 						timestamp: parsed.timestamp,
 						level: parsed.level,
 						source: parsed.source,
 						message: parsed.message,
 						meta: parsed.meta && isObject(parsed.meta) ? parsed.meta : null
-					});
+					};
 				} catch {
-					entries.push({
+					entry = {
 						timestamp: new Date().toISOString(),
 						level: "warn",
 						source: "logger",
@@ -121,8 +137,18 @@ export class AppLogger {
 						meta: {
 							filePath
 						}
-					});
+					};
 				}
+
+				if (LOG_LEVEL_PRIORITY[entry.level] < LOG_LEVEL_PRIORITY[minLevel]) {
+					continue;
+				}
+
+				if (sinceMs !== null && new Date(entry.timestamp).getTime() < sinceMs) {
+					continue;
+				}
+
+				entries.push(entry);
 
 				if (entries.length >= safeLimit) {
 					return entries;

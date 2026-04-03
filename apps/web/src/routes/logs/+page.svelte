@@ -9,6 +9,10 @@
 	let refreshTimer: ReturnType<typeof setInterval> | null = null;
 	let autoRefreshEnabled = false;
 	let selectedLevel = "all";
+	let exportMode = "lines";
+	let exportLines = 250;
+	let exportSpanValue = 24;
+	let exportSpanUnit = "hours";
 	const levelLabels: Record<string, string> = {
 		all: "All levels",
 		debug: "Debug",
@@ -22,6 +26,24 @@
 		warn: 30,
 		error: 40
 	};
+
+	function buildExportUrl() {
+		const params = new URLSearchParams();
+		params.set("mode", exportMode);
+
+		if (selectedLevel !== "all") {
+			params.set("level", selectedLevel);
+		}
+
+		if (exportMode === "lines") {
+			params.set("lines", String(Math.max(1, Math.floor(exportLines || 1))));
+		} else {
+			params.set("spanValue", String(Math.max(1, Math.floor(exportSpanValue || 1))));
+			params.set("spanUnit", exportSpanUnit);
+		}
+
+		return `/logs/export?${params.toString()}`;
+	}
 
 	function clearRefreshTimer() {
 		if (refreshTimer) {
@@ -102,6 +124,44 @@
 </section>
 
 <section class="section dashboard-stack">
+	<article class="dashboard-card dashboard-card--wide">
+		<div class="section-heading">
+			<h2>Export logs</h2>
+			<span class="status-chip status-chip--muted">Download</span>
+		</div>
+		<div class="logs-export-grid">
+			<label class="logs-filter">
+				<span>Scope</span>
+				<select bind:value={exportMode}>
+					<option value="lines">Last X lines</option>
+					<option value="timespan">Time span</option>
+				</select>
+			</label>
+
+			{#if exportMode === "lines"}
+				<label class="logs-filter">
+					<span>Lines</span>
+					<input bind:value={exportLines} min="1" step="1" type="number" />
+				</label>
+			{:else}
+				<label class="logs-filter">
+					<span>Span</span>
+					<input bind:value={exportSpanValue} min="1" step="1" type="number" />
+				</label>
+				<label class="logs-filter">
+					<span>Unit</span>
+					<select bind:value={exportSpanUnit}>
+						<option value="minutes">Minutes</option>
+						<option value="hours">Hours</option>
+						<option value="days">Days</option>
+					</select>
+				</label>
+			{/if}
+
+			<a class="button button--secondary" href={buildExportUrl()}>Download .log</a>
+		</div>
+	</article>
+
 	<article class="dashboard-card dashboard-card--wide">
 		<div class="section-heading">
 			<h2>Recent logs</h2>
