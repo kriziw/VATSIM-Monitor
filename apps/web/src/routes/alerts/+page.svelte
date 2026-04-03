@@ -227,6 +227,8 @@
 	let editorState = buildEditorState(data.notificationChannels);
 	let watchRuleSelections = buildWatchRuleSelections(data.notificationChannels);
 	let activeField: EditorFieldKey = "descriptionTemplate";
+	let variablePickerOpen = false;
+	let variablePickerField: EditorFieldKey = "descriptionTemplate";
 
 	let titleInput: HTMLInputElement | null = null;
 	let descriptionInput: HTMLTextAreaElement | null = null;
@@ -328,6 +330,28 @@
 		colorInput.click();
 	}
 
+	function fieldLabel(field: EditorFieldKey): string {
+		if (field === "titleTemplate") {
+			return "Title";
+		}
+
+		if (field === "descriptionTemplate") {
+			return "Description";
+		}
+
+		return "Additional content";
+	}
+
+	function openVariablePicker(field: EditorFieldKey) {
+		activeField = field;
+		variablePickerField = field;
+		variablePickerOpen = true;
+	}
+
+	function closeVariablePicker() {
+		variablePickerOpen = false;
+	}
+
 	function inputForField(field: EditorFieldKey): HTMLInputElement | HTMLTextAreaElement | null {
 		if (field === "titleTemplate") {
 			return titleInput;
@@ -365,21 +389,6 @@
 		});
 	}
 
-	function handleVariableDragStart(event: DragEvent, variable: TemplateVariableKey) {
-		event.dataTransfer?.setData("text/plain", variable);
-		event.dataTransfer!.effectAllowed = "copy";
-	}
-
-	function handleVariableDrop(event: DragEvent, field: EditorFieldKey) {
-		event.preventDefault();
-		const variable = event.dataTransfer?.getData("text/plain") as TemplateVariableKey;
-		if (!variable || !(variable in variableDescriptions)) {
-			return;
-		}
-
-		insertVariable(field, variable);
-	}
-
 	function renderedPreview(field: EditorFieldKey): string {
 		if (!activeTemplateState) {
 			return "";
@@ -411,6 +420,14 @@
 <svelte:head>
 	<title>Alerts | VATSIM Monitor</title>
 </svelte:head>
+
+<svelte:window
+	on:keydown={(event) => {
+		if (event.key === "Escape" && variablePickerOpen) {
+			closeVariablePicker();
+		}
+	}}
+/>
 
 <section class="dashboard-hero dashboard-hero--single">
 	<div class="panel dashboard-hero__main dashboard-hero__main--compact">
@@ -627,8 +644,17 @@
 						{#key `${selectedChannel.id}:${selectedTemplate}`}
 							<div class="alerts-composer">
 								<div class="alerts-composer__editor">
-									<label class={`compact-editor-field ${activeField === "titleTemplate" ? "compact-editor-field--active" : ""}`}>
-										<span>Title</span>
+									<div class={`compact-editor-field ${activeField === "titleTemplate" ? "compact-editor-field--active" : ""}`}>
+										<div class="compact-editor-field__head">
+											<span>Title</span>
+											<button
+												class="compact-editor-field__action"
+												type="button"
+												on:click={() => openVariablePicker("titleTemplate")}
+											>
+												Add variable
+											</button>
+										</div>
 										<input
 											bind:this={titleInput}
 											value={activeTemplateState.titleTemplate}
@@ -636,13 +662,20 @@
 												activeField = "titleTemplate";
 											}}
 											on:input={(event) => updateField("titleTemplate", event.currentTarget.value)}
-											on:dragover|preventDefault
-											on:drop={(event) => handleVariableDrop(event, "titleTemplate")}
 										/>
-									</label>
+									</div>
 
-									<label class={`compact-editor-field compact-editor-field--large ${activeField === "descriptionTemplate" ? "compact-editor-field--active" : ""}`}>
-										<span>Description</span>
+									<div class={`compact-editor-field compact-editor-field--large ${activeField === "descriptionTemplate" ? "compact-editor-field--active" : ""}`}>
+										<div class="compact-editor-field__head">
+											<span>Description</span>
+											<button
+												class="compact-editor-field__action"
+												type="button"
+												on:click={() => openVariablePicker("descriptionTemplate")}
+											>
+												Add variable
+											</button>
+										</div>
 										<textarea
 											bind:this={descriptionInput}
 											rows="6"
@@ -651,14 +684,21 @@
 												activeField = "descriptionTemplate";
 											}}
 											on:input={(event) => updateField("descriptionTemplate", event.currentTarget.value)}
-											on:dragover|preventDefault
-											on:drop={(event) => handleVariableDrop(event, "descriptionTemplate")}
 										></textarea>
-									</label>
+									</div>
 
 									<div class="alerts-composer__row">
-										<label class={`compact-editor-field ${activeField === "contentTemplate" ? "compact-editor-field--active" : ""}`}>
-											<span>Additional content</span>
+										<div class={`compact-editor-field ${activeField === "contentTemplate" ? "compact-editor-field--active" : ""}`}>
+											<div class="compact-editor-field__head">
+												<span>Additional content</span>
+												<button
+													class="compact-editor-field__action"
+													type="button"
+													on:click={() => openVariablePicker("contentTemplate")}
+												>
+													Add variable
+												</button>
+											</div>
 											<textarea
 												bind:this={contentInput}
 												rows="3"
@@ -667,12 +707,10 @@
 													activeField = "contentTemplate";
 												}}
 												on:input={(event) => updateField("contentTemplate", event.currentTarget.value)}
-												on:dragover|preventDefault
-												on:drop={(event) => handleVariableDrop(event, "contentTemplate")}
 											></textarea>
-										</label>
+										</div>
 
-										<label class="compact-editor-field compact-editor-field--color">
+										<div class="compact-editor-field compact-editor-field--color">
 											<span>Embed colour</span>
 											<div class="color-picker-row">
 												{#key colorValue()}
@@ -701,7 +739,7 @@
 													on:input={(event) => updateColor(event.currentTarget.value)}
 												/>
 											</div>
-										</label>
+										</div>
 									</div>
 								</div>
 
@@ -717,34 +755,6 @@
 											{#if renderedPreview("contentTemplate") !== "No plain-text content for this alert."}
 												<div class="preview-card__content">{renderedPreview("contentTemplate")}</div>
 											{/if}
-										</div>
-									</div>
-
-									<div class="template-detail template-detail--compact">
-										<div class="template-detail__head">
-											<strong>Variables</strong>
-											<span class="muted compact-note">Click or drag into the active field.</span>
-										</div>
-										<div class="token-board token-board--compact">
-											{#each activeTemplateSection.variables as variable}
-												<button
-													class="token-chip"
-													type="button"
-													draggable="true"
-													on:click={() => insertVariable(activeField, variable)}
-													on:dragstart={(event) => handleVariableDragStart(event, variable)}
-												>
-													<code>{variable}</code>
-												</button>
-											{/each}
-										</div>
-										<div class="template-variable-list template-variable-list--stack">
-											{#each activeTemplateSection.variables as variable}
-												<div class="template-variable-row">
-													<code>{variable}</code>
-													<span>{variableDescriptions[variable]}</span>
-												</div>
-											{/each}
 										</div>
 									</div>
 								</aside>
@@ -767,3 +777,45 @@
 		{/if}
 	</div>
 </section>
+
+{#if variablePickerOpen}
+	<div
+		class="modal-backdrop"
+		role="presentation"
+		on:click={(event) => {
+			if (event.currentTarget === event.target) {
+				closeVariablePicker();
+			}
+		}}
+	>
+		<div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="variable-picker-title">
+			<div class="modal-card__head">
+				<div>
+					<div class="eyebrow">Variables</div>
+					<h2 id="variable-picker-title">Insert into {fieldLabel(variablePickerField)}</h2>
+				</div>
+				<button class="button button--secondary" type="button" on:click={closeVariablePicker}>
+					Close
+				</button>
+			</div>
+			<p class="muted compact-lead">
+				Choose a variable to insert it where you were typing. The description explains what each token will resolve to.
+			</p>
+			<div class="variable-picker-grid">
+				{#each activeTemplateSection.variables as variable}
+					<button
+						class="variable-picker-item"
+						type="button"
+						on:click={() => {
+							insertVariable(variablePickerField, variable);
+							closeVariablePicker();
+						}}
+					>
+						<code>{variable}</code>
+						<span>{variableDescriptions[variable]}</span>
+					</button>
+				{/each}
+			</div>
+		</div>
+	</div>
+{/if}
