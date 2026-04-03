@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.13.3...v0.14.0) (2026-04-03)
+
+
+### Features
+
+* add controller move alerts ([#93](https://github.com/kriziw/VATSIM-Monitor/issues/93)) ([2a006fa](https://github.com/kriziw/VATSIM-Monitor/commit/2a006faa8341017c7363b72182f4705f61d7765d))
+
 ## [0.13.3](https://github.com/kriziw/VATSIM-Monitor/compare/v0.13.2...v0.13.3) (2026-04-03)
 
 
