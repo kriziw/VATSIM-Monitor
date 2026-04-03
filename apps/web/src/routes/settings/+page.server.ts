@@ -2,6 +2,7 @@ import {
 	createWatchRule,
 	deleteWatchRule,
 	fetchDashboardData,
+	updateAppSettings,
 	updateUserPreferences,
 	updateWatchRule
 } from "$lib/server/backend";
@@ -23,7 +24,8 @@ export const load = (async ({ locals }) => {
 		session: locals.session,
 		watchRules: dashboardData.watchRules,
 		notificationChannels: dashboardData.notificationChannels,
-		preferences: dashboardData.preferences
+		preferences: dashboardData.preferences,
+		appSettings: dashboardData.appSettings
 	};
 }) satisfies PageServerLoad;
 
@@ -118,6 +120,32 @@ export const actions = {
 			return fail(error?.status || 500, {
 				section: "preferences",
 				message: error?.body?.message ?? error?.message ?? "Unable to update preferences."
+			});
+		}
+	},
+	updateAppSettings: async ({ request, cookies }) => {
+		const sessionId = getSessionId(cookies);
+		if (!sessionId) {
+			throw redirect(302, "/login");
+		}
+
+		const form = await request.formData();
+		const logMaxFileSizeMb = Number(form.get("logMaxFileSizeMb") || "100");
+
+		try {
+			const appSettings = await updateAppSettings(sessionId, {
+				logMaxFileSizeBytes: Math.round(logMaxFileSizeMb * 1024 * 1024)
+			});
+			return {
+				success: true,
+				section: "appSettings",
+				message: `Log rotation size updated to ${Math.round(appSettings.logMaxFileSizeBytes / (1024 * 1024))} MB.`
+			};
+		} catch (error: any) {
+			return fail(error?.status || 500, {
+				section: "appSettings",
+				message: error?.body?.message ?? error?.message ?? "Unable to update application settings.",
+				logMaxFileSizeMb
 			});
 		}
 	}

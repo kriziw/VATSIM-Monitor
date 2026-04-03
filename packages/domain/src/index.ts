@@ -211,6 +211,10 @@ export interface UserPreferences {
 	logsEnabled: boolean;
 }
 
+export interface AppSettings {
+	logMaxFileSizeBytes: number;
+}
+
 export interface ControllerEvent {
 	id: string;
 	type: ControllerEventType;

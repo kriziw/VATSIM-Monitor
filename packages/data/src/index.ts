@@ -7,6 +7,7 @@ import { NotificationRoutingStore } from "./notification-routing-store.js";
 import { ControllerEventStore } from "./controller-event-store.js";
 import { NotificationDeliveryStore } from "./notification-delivery-store.js";
 import { UserPreferenceStore } from "./user-preference-store.js";
+import { AppSettingStore } from "./app-setting-store.js";
 
 export interface MysqlConfig {
 	host: string;
@@ -36,7 +37,8 @@ export {
 	NotificationRoutingStore,
 	ControllerEventStore,
 	NotificationDeliveryStore,
-	UserPreferenceStore
+	UserPreferenceStore,
+	AppSettingStore
 };
 export type { CreateWatchRuleInput, UpdateWatchRuleInput } from "./watch-rule-store.js";
 export type {

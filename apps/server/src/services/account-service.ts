@@ -6,12 +6,14 @@ import {
 	type DiscordNotificationTemplateType,
 	type DiscordNotificationChannelConfig,
 	type PartialDiscordNotificationChannelConfig,
+	type AppSettings,
 	type NotificationChannel,
 	type NotificationChannelType,
 	type UserPreferences,
 	type WatchRule
 } from "@vatsim-monitor/domain";
-import { NotificationChannelStore, UserPreferenceStore, WatchRuleStore } from "@vatsim-monitor/data";
+import { AppSettingStore, NotificationChannelStore, UserPreferenceStore, WatchRuleStore } from "@vatsim-monitor/data";
+import type { AppLogger } from "../lib/logger.js";
 
 export class AccountError extends Error {
 	constructor(message: string, public readonly status: number) {
@@ -151,7 +153,9 @@ export class AccountService {
 	constructor(
 		private readonly watchRuleStore: WatchRuleStore,
 		private readonly notificationChannelStore: NotificationChannelStore,
-		private readonly userPreferenceStore: UserPreferenceStore
+		private readonly userPreferenceStore: UserPreferenceStore,
+		private readonly appSettingStore: AppSettingStore,
+		private readonly logger: AppLogger
 	) {}
 
 	private async validateWatchRuleSelection(userId: string, watchRuleIds: string[]): Promise<string[]> {
@@ -176,14 +180,16 @@ export class AccountService {
 		watchRules: WatchRule[];
 		notificationChannels: NotificationChannel[];
 		preferences: UserPreferences;
+		appSettings: AppSettings;
 	}> {
-		const [watchRules, notificationChannels, preferences] = await Promise.all([
+		const [watchRules, notificationChannels, preferences, appSettings] = await Promise.all([
 			this.watchRuleStore.listForUser(userId),
 			this.notificationChannelStore.listForUser(userId),
-			this.userPreferenceStore.getForUser(userId)
+			this.userPreferenceStore.getForUser(userId),
+			this.appSettingStore.getSettings()
 		]);
 
-		return { watchRules, notificationChannels, preferences };
+		return { watchRules, notificationChannels, preferences, appSettings };
 	}
 
 	public async updatePreferences(
@@ -191,6 +197,12 @@ export class AccountService {
 		update: { logsEnabled?: boolean }
 	): Promise<UserPreferences> {
 		return this.userPreferenceStore.update(userId, update);
+	}
+
+	public async updateAppSettings(update: { logMaxFileSizeBytes?: number }): Promise<AppSettings> {
+		const appSettings = await this.appSettingStore.updateSettings(update);
+		this.logger.setMaxFileSizeBytes(appSettings.logMaxFileSizeBytes);
+		return appSettings;
 	}
 
 	public async createWatchRule(userId: string, pattern: string, topdown: boolean): Promise<WatchRule> {

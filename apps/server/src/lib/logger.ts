@@ -20,6 +20,12 @@ export interface LoggerOptions {
 	echoToConsole?: boolean;
 }
 
+export interface LogQueryOptions {
+	limit?: number;
+	minLevel?: LogLevel;
+	since?: Date;
+}
+
 const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 	debug: 10,
 	info: 20,
@@ -50,9 +56,10 @@ function toErrorMeta(error: unknown): Record<string, unknown> {
 }
 
 export class AppLogger {
+	public static readonly MAX_LOG_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 	private readonly directory: string;
 	private readonly fileName: string;
-	private readonly maxFileSizeBytes: number;
+	private maxFileSizeBytes: number;
 	private readonly maxFiles: number;
 	private readonly echoToConsole: boolean;
 	private readonly minLevel: LogLevel;
@@ -61,7 +68,7 @@ export class AppLogger {
 	constructor(options: LoggerOptions) {
 		this.directory = options.directory;
 		this.fileName = options.fileName || "app.log";
-		this.maxFileSizeBytes = Math.max(options.maxFileSizeBytes, 32_768);
+		this.maxFileSizeBytes = this.normalizeMaxFileSizeBytes(options.maxFileSizeBytes);
 		this.maxFiles = Math.max(options.maxFiles, 1);
 		this.echoToConsole = options.echoToConsole ?? true;
 		this.minLevel = options.minLevel ?? "info";
@@ -69,6 +76,14 @@ export class AppLogger {
 
 	public debug(source: string, message: string, meta?: unknown): void {
 		this.enqueue("debug", source, message, this.normalizeMeta(meta));
+	}
+
+	public setMaxFileSizeBytes(value: number): void {
+		this.maxFileSizeBytes = this.normalizeMaxFileSizeBytes(value);
+	}
+
+	public getMaxFileSizeBytes(): number {
+		return this.maxFileSizeBytes;
 	}
 
 	public info(source: string, message: string, meta?: unknown): void {
@@ -92,7 +107,15 @@ export class AppLogger {
 	}
 
 	public async listRecent(limit = 200): Promise<LogEntry[]> {
-		const safeLimit = Math.min(Math.max(limit, 1), 1000);
+		return this.query({
+			limit
+		});
+	}
+
+	public async query(options: LogQueryOptions = {}): Promise<LogEntry[]> {
+		const safeLimit = Math.min(Math.max(options.limit ?? 200, 1), 5000);
+		const minLevel = options.minLevel ?? "debug";
+		const sinceMs = options.since ? options.since.getTime() : null;
 		const entries: LogEntry[] = [];
 
 		for (const filePath of this.getLogFilePaths()) {
@@ -103,17 +126,19 @@ export class AppLogger {
 
 			const lines = raw.split(/\r?\n/).filter((line) => line.trim().length > 0);
 			for (let index = lines.length - 1; index >= 0; index -= 1) {
+				let entry: LogEntry;
+
 				try {
 					const parsed = JSON.parse(lines[index]) as LogEntry;
-					entries.push({
+					entry = {
 						timestamp: parsed.timestamp,
 						level: parsed.level,
 						source: parsed.source,
 						message: parsed.message,
 						meta: parsed.meta && isObject(parsed.meta) ? parsed.meta : null
-					});
+					};
 				} catch {
-					entries.push({
+					entry = {
 						timestamp: new Date().toISOString(),
 						level: "warn",
 						source: "logger",
@@ -121,8 +146,18 @@ export class AppLogger {
 						meta: {
 							filePath
 						}
-					});
+					};
 				}
+
+				if (LOG_LEVEL_PRIORITY[entry.level] < LOG_LEVEL_PRIORITY[minLevel]) {
+					continue;
+				}
+
+				if (sinceMs !== null && new Date(entry.timestamp).getTime() < sinceMs) {
+					continue;
+				}
+
+				entries.push(entry);
 
 				if (entries.length >= safeLimit) {
 					return entries;
@@ -209,6 +244,14 @@ export class AppLogger {
 
 	private getArchivedLogPath(index: number): string {
 		return path.join(this.directory, `${this.fileName}.${index}`);
+	}
+
+	private normalizeMaxFileSizeBytes(value: number): number {
+		if (!Number.isFinite(value)) {
+			return AppLogger.MAX_LOG_FILE_SIZE_BYTES;
+		}
+
+		return Math.min(Math.max(Math.floor(value), 32_768), AppLogger.MAX_LOG_FILE_SIZE_BYTES);
 	}
 
 	private normalizeMeta(meta: unknown): Record<string, unknown> | null {

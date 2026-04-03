@@ -6,9 +6,14 @@
 
 	export let data;
 
-	let refreshTimer: ReturnType<typeof setInterval> | null = null;
-	let autoRefreshEnabled = false;
+	let eventSource: EventSource | null = null;
+	let liveUpdatesEnabled = false;
+	let logs: AppLogEntry[] = data.logs;
 	let selectedLevel = "all";
+	let exportMode = "lines";
+	let exportLines = 250;
+	let exportSpanValue = 24;
+	let exportSpanUnit = "hours";
 	const levelLabels: Record<string, string> = {
 		all: "All levels",
 		debug: "Debug",
@@ -23,15 +28,34 @@
 		error: 40
 	};
 
-	function clearRefreshTimer() {
-		if (refreshTimer) {
-			clearInterval(refreshTimer);
-			refreshTimer = null;
+	function buildExportUrl() {
+		const params = new URLSearchParams();
+		params.set("mode", exportMode);
+
+		if (selectedLevel !== "all") {
+			params.set("level", selectedLevel);
+		}
+
+		if (exportMode === "lines") {
+			params.set("lines", String(Math.max(1, Math.floor(exportLines || 1))));
+		} else {
+			params.set("spanValue", String(Math.max(1, Math.floor(exportSpanValue || 1))));
+			params.set("spanUnit", exportSpanUnit);
+		}
+
+		return `/logs/export?${params.toString()}`;
+	}
+
+	function closeEventSource() {
+		if (eventSource) {
+			eventSource.close();
+			eventSource = null;
 		}
 	}
 
-	function refreshLogs() {
-		void invalidate("app:logs");
+	async function refreshLogs() {
+		await invalidate("app:logs");
+		logs = data.logs;
 	}
 
 	function matchesSelectedLevel(entry: AppLogEntry): boolean {
@@ -42,18 +66,34 @@
 		return levelOrder[entry.level] >= levelOrder[selectedLevel as AppLogEntry["level"]];
 	}
 
-	$: if (browser && autoRefreshEnabled && !refreshTimer) {
-		refreshTimer = setInterval(refreshLogs, 10000);
+	function openLiveStream() {
+		if (!browser || eventSource) {
+			return;
+		}
+
+		eventSource = new EventSource("/logs/stream");
+		eventSource.addEventListener("logs", (event) => {
+			const payload = JSON.parse((event as MessageEvent<string>).data) as AppLogEntry[];
+			logs = payload;
+		});
+		eventSource.addEventListener("error", () => {
+			closeEventSource();
+		});
 	}
 
-	$: if (!autoRefreshEnabled) {
-		clearRefreshTimer();
+	$: if (browser && liveUpdatesEnabled) {
+		openLiveStream();
 	}
 
-	$: filteredLogs = data.logs.filter(matchesSelectedLevel);
+	$: if (!liveUpdatesEnabled) {
+		closeEventSource();
+		logs = data.logs;
+	}
+
+	$: filteredLogs = logs.filter(matchesSelectedLevel);
 
 	onDestroy(() => {
-		clearRefreshTimer();
+		closeEventSource();
 	});
 </script>
 
@@ -77,8 +117,8 @@
 					</select>
 				</label>
 				<label class="toggle-chip">
-					<input bind:checked={autoRefreshEnabled} type="checkbox" />
-					<span>Auto-refresh</span>
+					<input bind:checked={liveUpdatesEnabled} type="checkbox" />
+					<span>Live updates</span>
 				</label>
 				<button class="button button--secondary" on:click={refreshLogs} type="button">Refresh now</button>
 			</div>
@@ -94,8 +134,8 @@
 				<strong>{levelLabels[selectedLevel]}</strong>
 			</div>
 			<div class="monitor-strip__item">
-				<span>Refresh</span>
-				<strong>{autoRefreshEnabled ? "10s" : "Paused"}</strong>
+				<span>Updates</span>
+				<strong>{liveUpdatesEnabled ? "Live" : "Paused"}</strong>
 			</div>
 		</div>
 	</div>
@@ -105,33 +145,71 @@
 	<article class="dashboard-card dashboard-card--wide">
 		<div class="section-heading">
 			<h2>Recent logs</h2>
-			<span class="status-chip status-chip--muted">Rotating files</span>
+			<span class="status-chip {liveUpdatesEnabled ? 'status-chip--ok' : 'status-chip--muted'}">
+				{liveUpdatesEnabled ? "Streaming" : "Static"}
+			</span>
+		</div>
+		<div class="logs-export-grid logs-export-grid--compact">
+			<label class="logs-filter">
+				<span>Export</span>
+				<select bind:value={exportMode}>
+					<option value="lines">Last X lines</option>
+					<option value="timespan">Time span</option>
+				</select>
+			</label>
+
+			{#if exportMode === "lines"}
+				<label class="logs-filter">
+					<span>Lines</span>
+					<input bind:value={exportLines} min="1" step="1" type="number" />
+				</label>
+			{:else}
+				<label class="logs-filter">
+					<span>Span</span>
+					<input bind:value={exportSpanValue} min="1" step="1" type="number" />
+				</label>
+				<label class="logs-filter">
+					<span>Unit</span>
+					<select bind:value={exportSpanUnit}>
+						<option value="minutes">Minutes</option>
+						<option value="hours">Hours</option>
+						<option value="days">Days</option>
+					</select>
+				</label>
+			{/if}
+
+			<a class="button button--secondary" href={buildExportUrl()}>Download .log</a>
 		</div>
 
-		{#if data.logs.length === 0}
+		{#if logs.length === 0}
 			<p class="empty-state">No application logs are available yet.</p>
 		{:else if filteredLogs.length === 0}
 			<p class="empty-state">No log entries match the current level filter.</p>
 		{:else}
-			<div class="log-list">
+			<div class="log-console">
 				{#each filteredLogs as entry}
-					<div class="log-row">
-						<div class="log-row__summary">
-							<div class="log-row__meta">
-								<span class="status-chip {entry.level === 'error'
-									? 'status-chip--warn'
+					<div class="log-console__row">
+						<div class="log-console__line">
+							<span class="log-console__timestamp">{entry.timestamp}</span>
+							<span
+								class="log-console__level {entry.level === 'error'
+									? 'log-console__level--error'
 									: entry.level === 'warn'
-										? 'status-chip--muted'
+										? 'log-console__level--warn'
 										: entry.level === 'debug'
-											? 'status-chip--muted'
-											: 'status-chip--ok'}">{entry.level === "warn" ? "warning" : entry.level}</span>
-								<strong>{entry.source}</strong>
-								<span>{entry.timestamp}</span>
-							</div>
-							<p>{entry.message}</p>
+											? 'log-console__level--debug'
+											: 'log-console__level--info'}"
+							>
+								{entry.level === "warn" ? "warning" : entry.level}
+							</span>
+							<span class="log-console__source">{entry.source}</span>
+							<span class="log-console__message">{entry.message}</span>
 						</div>
 						{#if entry.meta}
-							<pre class="log-row__details">{JSON.stringify(entry.meta, null, 2)}</pre>
+							<details class="log-console__details">
+								<summary>Show details</summary>
+								<pre class="log-console__meta">{JSON.stringify(entry.meta, null, 2)}</pre>
+							</details>
 						{/if}
 					</div>
 				{/each}

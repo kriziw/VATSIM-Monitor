@@ -4,9 +4,9 @@ export interface AppConfig {
 	trustProxy: boolean | number | string;
 	vatsimOAuthEnabled: boolean;
 	pollIntervalMs: number;
-	logging: {
-		directory: string;
-		maxFileSizeBytes: number;
+		logging: {
+			directory: string;
+			maxFileSizeBytes: number;
 		maxFiles: number;
 		level: "debug" | "error" | "info" | "warn";
 	};
@@ -58,7 +58,7 @@ export function loadConfig(): AppConfig {
 		pollIntervalMs: Number(process.env.MONITOR_POLL_INTERVAL_MS || "15000"),
 		logging: {
 			directory: process.env.LOG_DIR || "./logs",
-			maxFileSizeBytes: Number(process.env.LOG_MAX_FILE_SIZE_BYTES || "1048576"),
+			maxFileSizeBytes: Number(process.env.LOG_MAX_FILE_SIZE_BYTES || "104857600"),
 			maxFiles: Number(process.env.LOG_MAX_FILES || "5"),
 			level: parseLogLevel(process.env.LOG_LEVEL)
 		},
