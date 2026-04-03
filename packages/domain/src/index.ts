@@ -1,9 +1,17 @@
 export type UserRole = "admin" | "user";
 export type LinkedAccountProvider = "local" | "vatsim";
 export type NotificationChannelType = "discord_webhook" | "web_push";
-export type ControllerEventType = "controller_change" | "controller_offline" | "controller_online";
+export type ControllerEventType =
+	| "controller_change"
+	| "controller_move"
+	| "controller_offline"
+	| "controller_online";
 export type MonitorProviderState = "active" | "pending" | "stopped";
-export type DiscordNotificationTemplateType = "controllerChange" | "controllerOffline" | "controllerOnline";
+export type DiscordNotificationTemplateType =
+	| "controllerChange"
+	| "controllerMove"
+	| "controllerOffline"
+	| "controllerOnline";
 
 export interface DiscordNotificationTemplate {
 	enabled: boolean;
@@ -17,12 +25,14 @@ export interface DiscordNotificationChannelConfig {
 	controllerOnline: DiscordNotificationTemplate;
 	controllerOffline: DiscordNotificationTemplate;
 	controllerChange: DiscordNotificationTemplate;
+	controllerMove: DiscordNotificationTemplate;
 }
 
 export interface PartialDiscordNotificationChannelConfig {
 	controllerOnline?: Partial<DiscordNotificationTemplate>;
 	controllerOffline?: Partial<DiscordNotificationTemplate>;
 	controllerChange?: Partial<DiscordNotificationTemplate>;
+	controllerMove?: Partial<DiscordNotificationTemplate>;
 }
 
 export const DISCORD_TEMPLATE_VARIABLES = [
@@ -30,6 +40,7 @@ export const DISCORD_TEMPLATE_VARIABLES = [
 	"{{frequency}}",
 	"{{controllerName}}",
 	"{{controllerCid}}",
+	"{{previousCallsign}}",
 	"{{previousControllerName}}",
 	"{{previousControllerCid}}",
 	"{{previousFrequency}}",
@@ -60,6 +71,17 @@ export function getDefaultDiscordNotificationTemplate(
 				"**{{controllerName}}** ({{controllerCid}}) went offline from **{{callsign}}**.",
 			contentTemplate: null,
 			color: "#AA4D24"
+		};
+	}
+
+	if (type === "controllerMove") {
+		return {
+			enabled: true,
+			titleTemplate: "Controller moved: {{previousCallsign}} -> {{callsign}}",
+			descriptionTemplate:
+				"**{{controllerName}}** ({{controllerCid}}) moved from **{{previousCallsign}}** to **{{callsign}}** at **{{frequency}}**.",
+			contentTemplate: null,
+			color: "#6A4FCF"
 		};
 	}
 
@@ -138,14 +160,16 @@ export function coerceDiscordNotificationConfig(raw: unknown): DiscordNotificati
 		return {
 			controllerOnline: coerceLegacyDiscordNotificationTemplate(parsed, "controllerOnline"),
 			controllerOffline: coerceLegacyDiscordNotificationTemplate(parsed, "controllerOffline"),
-			controllerChange: coerceLegacyDiscordNotificationTemplate(parsed, "controllerChange")
+			controllerChange: coerceLegacyDiscordNotificationTemplate(parsed, "controllerChange"),
+			controllerMove: coerceLegacyDiscordNotificationTemplate(parsed, "controllerMove")
 		};
 	}
 
 	return {
 		controllerOnline: coerceDiscordNotificationTemplate(parsed.controllerOnline, "controllerOnline"),
 		controllerOffline: coerceDiscordNotificationTemplate(parsed.controllerOffline, "controllerOffline"),
-		controllerChange: coerceDiscordNotificationTemplate(parsed.controllerChange, "controllerChange")
+		controllerChange: coerceDiscordNotificationTemplate(parsed.controllerChange, "controllerChange"),
+		controllerMove: coerceDiscordNotificationTemplate(parsed.controllerMove, "controllerMove")
 	};
 }
 
@@ -153,8 +177,21 @@ export function getDefaultDiscordNotificationConfig(): DiscordNotificationChanne
 	return {
 		controllerOnline: getDefaultDiscordNotificationTemplate("controllerOnline"),
 		controllerOffline: getDefaultDiscordNotificationTemplate("controllerOffline"),
-		controllerChange: getDefaultDiscordNotificationTemplate("controllerChange")
+		controllerChange: getDefaultDiscordNotificationTemplate("controllerChange"),
+		controllerMove: getDefaultDiscordNotificationTemplate("controllerMove")
 	};
+}
+
+export interface ControllerEventPayloadController {
+	cid: number;
+	callsign: string;
+	frequency: string;
+	name: string;
+}
+
+export interface ControllerEventPayload {
+	name: string | null;
+	previousController: ControllerEventPayloadController | null;
 }
 
 export interface User {
@@ -223,6 +260,7 @@ export interface ControllerEvent {
 	callsign: string;
 	frequency: string;
 	source: string;
+	payload: ControllerEventPayload | null;
 	occurredAt: string;
 	createdAt: string;
 }

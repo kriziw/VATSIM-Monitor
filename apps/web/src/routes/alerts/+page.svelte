@@ -15,6 +15,7 @@
 		| "{{frequency}}"
 		| "{{controllerName}}"
 		| "{{controllerCid}}"
+		| "{{previousCallsign}}"
 		| "{{previousControllerName}}"
 		| "{{previousControllerCid}}"
 		| "{{previousFrequency}}"
@@ -88,6 +89,24 @@
 				"{{eventLabel}}",
 				"{{statusLabel}}"
 			]
+		},
+		{
+			key: "controllerMove",
+			tabLabel: "Move",
+			title: "Controller move",
+			description: "Sent when the same controller moves from one watched position to another within roughly 30 seconds.",
+			exampleLabel: "Example: LHBP_GND moves to LHBP_DEL.",
+			variables: [
+				"{{callsign}}",
+				"{{frequency}}",
+				"{{controllerName}}",
+				"{{controllerCid}}",
+				"{{previousCallsign}}",
+				"{{previousFrequency}}",
+				"{{eventType}}",
+				"{{eventLabel}}",
+				"{{statusLabel}}"
+			]
 		}
 	];
 
@@ -96,6 +115,7 @@
 		"{{frequency}}": "The current published frequency for the controller.",
 		"{{controllerName}}": "The controller currently occupying the watched position.",
 		"{{controllerCid}}": "The VATSIM CID of the current controller.",
+		"{{previousCallsign}}": "The controller position the controller was previously staffing before the move.",
 		"{{previousControllerName}}": "The controller who was on the position before the change event.",
 		"{{previousControllerCid}}": "The VATSIM CID of the previous controller.",
 		"{{previousFrequency}}": "The previous frequency recorded before the handover.",
@@ -110,6 +130,7 @@
 			"{{frequency}}": "118.700",
 			"{{controllerName}}": "Alex Tower",
 			"{{controllerCid}}": "1234567",
+			"{{previousCallsign}}": "EGLL_TWR",
 			"{{previousControllerName}}": "Unstaffed",
 			"{{previousControllerCid}}": "N/A",
 			"{{previousFrequency}}": "118.700",
@@ -122,6 +143,7 @@
 			"{{frequency}}": "118.700",
 			"{{controllerName}}": "Alex Tower",
 			"{{controllerCid}}": "1234567",
+			"{{previousCallsign}}": "EGLL_TWR",
 			"{{previousControllerName}}": "Alex Tower",
 			"{{previousControllerCid}}": "1234567",
 			"{{previousFrequency}}": "118.700",
@@ -134,12 +156,26 @@
 			"{{frequency}}": "118.700",
 			"{{controllerName}}": "Jamie Tower",
 			"{{controllerCid}}": "2345678",
+			"{{previousCallsign}}": "EGLL_TWR",
 			"{{previousControllerName}}": "Alex Tower",
 			"{{previousControllerCid}}": "1234567",
 			"{{previousFrequency}}": "118.700",
 			"{{eventType}}": "controller_change",
 			"{{eventLabel}}": "Controller Change",
 			"{{statusLabel}}": "Changed"
+		},
+		controllerMove: {
+			"{{callsign}}": "LHBP_DEL",
+			"{{frequency}}": "134.540",
+			"{{controllerName}}": "Barna Ground",
+			"{{controllerCid}}": "1337518",
+			"{{previousCallsign}}": "LHBP_GND",
+			"{{previousControllerName}}": "Barna Ground",
+			"{{previousControllerCid}}": "1337518",
+			"{{previousFrequency}}": "121.905",
+			"{{eventType}}": "controller_move",
+			"{{eventLabel}}": "Controller Move",
+			"{{statusLabel}}": "Moved"
 		}
 	};
 
@@ -172,6 +208,16 @@
 					config.controllerChange.color ??
 					getDefaultDiscordNotificationTemplate("controllerChange").color ??
 					"#0E7C86"
+			},
+			controllerMove: {
+				enabled: config.controllerMove.enabled,
+				titleTemplate: config.controllerMove.titleTemplate,
+				descriptionTemplate: config.controllerMove.descriptionTemplate,
+				contentTemplate: config.controllerMove.contentTemplate ?? "",
+				color:
+					config.controllerMove.color ??
+					getDefaultDiscordNotificationTemplate("controllerMove").color ??
+					"#6A4FCF"
 			}
 		};
 	}
@@ -199,7 +245,11 @@
 	}
 
 	function findInitialTemplate(): DiscordNotificationTemplateType {
-		if (form?.selectedTemplate === "controllerOffline" || form?.selectedTemplate === "controllerChange") {
+		if (
+			form?.selectedTemplate === "controllerOffline" ||
+			form?.selectedTemplate === "controllerChange" ||
+			form?.selectedTemplate === "controllerMove"
+		) {
 			return form.selectedTemplate;
 		}
 
@@ -413,6 +463,10 @@
 			return "Save change alert";
 		}
 
+		if (type === "controllerMove") {
+			return "Save move alert";
+		}
+
 		return "Save online alert";
 	}
 </script>
@@ -546,7 +600,7 @@
 						<section class="alerts-panel">
 							<div class="alerts-panel__head">
 								<strong>Destination details</strong>
-								<span class="muted compact-note">One webhook, three alert templates.</span>
+								<span class="muted compact-note">One webhook, four alert templates.</span>
 							</div>
 							<div class="alert-config-grid">
 								<label>

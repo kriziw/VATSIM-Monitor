@@ -114,7 +114,8 @@ function normalizeDiscordConfig(
 	return {
 		controllerOnline: normalizeDiscordTemplate(config.controllerOnline, "controllerOnline", "Controller online"),
 		controllerOffline: normalizeDiscordTemplate(config.controllerOffline, "controllerOffline", "Controller offline"),
-		controllerChange: normalizeDiscordTemplate(config.controllerChange, "controllerChange", "Controller change")
+		controllerChange: normalizeDiscordTemplate(config.controllerChange, "controllerChange", "Controller change"),
+		controllerMove: normalizeDiscordTemplate(config.controllerMove, "controllerMove", "Controller move")
 	};
 }
 
@@ -145,7 +146,13 @@ function mergeDiscordConfig(
 					...base.controllerChange,
 					...update.controllerChange
 				}
-			: base.controllerChange
+			: base.controllerChange,
+		controllerMove: update.controllerMove
+			? {
+					...base.controllerMove,
+					...update.controllerMove
+				}
+			: base.controllerMove
 	});
 }
 

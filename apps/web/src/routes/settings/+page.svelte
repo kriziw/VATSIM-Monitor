@@ -158,7 +158,7 @@
 			<h2>Alerts</h2>
 			<a class="button button--secondary" href="/alerts">Open Alerts</a>
 		</div>
-		<p class="compact-lead">Discord destinations, rule links, and online/offline/change templates are managed on the dedicated Alerts page.</p>
+		<p class="compact-lead">Discord destinations, rule links, and online/offline/change/move templates are managed on the dedicated Alerts page.</p>
 
 		<div class="card-list">
 			<div class="stack-card">
@@ -181,6 +181,7 @@
 					<span>Controller online</span>
 					<span>Controller offline</span>
 					<span>Controller change</span>
+					<span>Controller move</span>
 				</div>
 			</div>
 		</div>
