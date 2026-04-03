@@ -745,6 +745,85 @@ textarea {
 	border-radius: 16px;
 }
 
+.settings-page {
+	gap: 14px;
+}
+
+.settings-page .dashboard-card {
+	padding: 18px;
+	border-radius: 20px;
+}
+
+.settings-page .section-heading {
+	margin-bottom: 10px;
+}
+
+.settings-page .card-list {
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.settings-page .stack-card {
+	padding: 14px 16px;
+	border-radius: 16px;
+}
+
+.settings-page .meta-row {
+	margin-top: 8px;
+	gap: 10px;
+	font-size: 0.92rem;
+}
+
+.settings-page .button-row {
+	margin-top: 14px;
+}
+
+.settings-page .form-grid {
+	gap: 12px;
+}
+
+.settings-page .empty-state {
+	padding: 14px 16px;
+	border-radius: 16px;
+}
+
+.settings-page .compact-row {
+	margin-top: 10px;
+}
+
+.settings-page .button {
+	padding: 10px 16px;
+}
+
+.settings-page .form-grid input,
+.settings-page .form-grid textarea {
+	padding: 10px 12px;
+	border-radius: 12px;
+}
+
+.settings-page .form-error {
+	padding: 10px 12px;
+	border-radius: 12px;
+}
+
+.settings-toolbar {
+	margin-top: 14px;
+	padding-top: 14px;
+}
+
+.settings-toolbar__actions {
+	gap: 10px;
+}
+
+.account-chip {
+	gap: 10px;
+}
+
+.account-chip > div {
+	min-width: 160px;
+	padding: 10px 12px;
+}
+
 .card-list {
 	display: grid;
 	gap: 14px;

@@ -12,26 +12,26 @@
 </svelte:head>
 
 <section class="dashboard-hero dashboard-hero--single">
-	<div class="panel dashboard-hero__main">
+	<div class="panel dashboard-hero__main dashboard-hero__main--compact">
 		<div class="eyebrow">Settings</div>
-		<h1>Configure what this account watches and where alerts go.</h1>
-		<p>Use the settings page to define what this account watches. Discord channels and alert message design now live on their own Alerts page so they are easier to manage.</p>
-		<div class="summary-grid">
-			<div class="snapshot-card">
-				<span>Watch rules</span>
+		<h1>Manage what this account watches and how it troubleshoots.</h1>
+		<p class="compact-lead">Watch rules live here. Alert templates stay on Alerts, and optional log access stays under Troubleshooting.</p>
+		<div class="monitor-strip monitor-strip--tight">
+			<div class="monitor-strip__item">
+				<span>Rules</span>
 				<strong>{data.watchRules.length}</strong>
 			</div>
-			<div class="snapshot-card">
-				<span>Active rules</span>
+			<div class="monitor-strip__item">
+				<span>Active</span>
 				<strong>{data.watchRules.filter((watchRule) => watchRule.isActive).length}</strong>
 			</div>
-			<div class="snapshot-card">
-				<span>Alert channels</span>
+			<div class="monitor-strip__item">
+				<span>Alerts</span>
 				<strong>{data.notificationChannels.length}</strong>
 			</div>
-			<div class="snapshot-card">
-				<span>Active channels</span>
-				<strong>{data.notificationChannels.filter((channel) => channel.isActive).length}</strong>
+			<div class="monitor-strip__item">
+				<span>Live logs</span>
+				<strong>{data.preferences.logsEnabled ? "On" : "Off"}</strong>
 			</div>
 		</div>
 		<div class="settings-toolbar">
@@ -56,12 +56,12 @@
 	</div>
 </section>
 
-<section class="section dashboard-stack">
+<section class="section dashboard-stack settings-page">
 	<article class="dashboard-card" id="watch-rules">
 		<div class="section-heading">
 			<h2>Watch rules</h2>
 		</div>
-		<p>Choose the controller callsigns or wildcard patterns you want this account to watch.</p>
+		<p class="compact-lead">Choose the callsigns or wildcard patterns this account should watch.</p>
 
 		{#if form?.section === "watchRules"}
 			<div class="form-error">{form.message}</div>
@@ -158,7 +158,7 @@
 			<h2>Alerts</h2>
 			<a class="button button--secondary" href="/alerts">Open Alerts</a>
 		</div>
-		<p>Discord webhooks, online/offline/change message formats, template variables, and examples are now managed on a dedicated page.</p>
+		<p class="compact-lead">Discord destinations, rule links, and online/offline/change templates are managed on the dedicated Alerts page.</p>
 
 		<div class="card-list">
 			<div class="stack-card">
@@ -190,7 +190,7 @@
 		<div class="section-heading">
 			<h2>Troubleshooting</h2>
 		</div>
-		<p>Enable the in-app Logs page only when you want recent rotating server logs available from the navigation.</p>
+		<p class="compact-lead">Enable the in-app Logs page only when you want recent rotating server logs available from the navigation.</p>
 
 		{#if form?.section === "preferences"}
 			<div class="form-error">{form.message}</div>
