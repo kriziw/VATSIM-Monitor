@@ -1,6 +1,10 @@
 <script lang="ts">
 	export let data;
 	export let form;
+
+	$: effectiveLogMaxFileSizeMb = Math.round(data.appSettings.logMaxFileSizeBytes / (1024 * 1024));
+	$: submittedLogMaxFileSizeMb =
+		form?.section === "appSettings" ? form?.logMaxFileSizeMb ?? effectiveLogMaxFileSizeMb : effectiveLogMaxFileSizeMb;
 </script>
 
 <svelte:head>
@@ -180,6 +184,35 @@
 						</button>
 					</form>
 				</div>
+			</div>
+			<div class="stack-card">
+				<div class="stack-card__head">
+					<strong>Log rotation</strong>
+					<span class="status-chip status-chip--muted">Max 100 MB</span>
+				</div>
+				<div class="meta-row">
+					<span>Current cap {effectiveLogMaxFileSizeMb} MB</span>
+					<span>Applied globally</span>
+				</div>
+				{#if form?.section === "appSettings"}
+					<div class="form-error">{form.message}</div>
+				{/if}
+				<form class="form-grid form-grid--compact compact-row" method="post">
+					<input
+						max="100"
+						min="1"
+						name="logMaxFileSizeMb"
+						step="1"
+						type="number"
+						value={submittedLogMaxFileSizeMb}
+					/>
+					<div class="muted compact-lead">
+						Set the maximum size of each rotating log file. Values above 100 MB are capped automatically.
+					</div>
+					<button class="button button--secondary" type="submit" formaction="?/updateAppSettings">
+						Save log rotation
+					</button>
+				</form>
 			</div>
 		</div>
 	</article>

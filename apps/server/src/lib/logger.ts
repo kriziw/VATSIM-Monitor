@@ -56,9 +56,10 @@ function toErrorMeta(error: unknown): Record<string, unknown> {
 }
 
 export class AppLogger {
+	public static readonly MAX_LOG_FILE_SIZE_BYTES = 100 * 1024 * 1024;
 	private readonly directory: string;
 	private readonly fileName: string;
-	private readonly maxFileSizeBytes: number;
+	private maxFileSizeBytes: number;
 	private readonly maxFiles: number;
 	private readonly echoToConsole: boolean;
 	private readonly minLevel: LogLevel;
@@ -67,7 +68,7 @@ export class AppLogger {
 	constructor(options: LoggerOptions) {
 		this.directory = options.directory;
 		this.fileName = options.fileName || "app.log";
-		this.maxFileSizeBytes = Math.max(options.maxFileSizeBytes, 32_768);
+		this.maxFileSizeBytes = this.normalizeMaxFileSizeBytes(options.maxFileSizeBytes);
 		this.maxFiles = Math.max(options.maxFiles, 1);
 		this.echoToConsole = options.echoToConsole ?? true;
 		this.minLevel = options.minLevel ?? "info";
@@ -75,6 +76,14 @@ export class AppLogger {
 
 	public debug(source: string, message: string, meta?: unknown): void {
 		this.enqueue("debug", source, message, this.normalizeMeta(meta));
+	}
+
+	public setMaxFileSizeBytes(value: number): void {
+		this.maxFileSizeBytes = this.normalizeMaxFileSizeBytes(value);
+	}
+
+	public getMaxFileSizeBytes(): number {
+		return this.maxFileSizeBytes;
 	}
 
 	public info(source: string, message: string, meta?: unknown): void {
@@ -235,6 +244,14 @@ export class AppLogger {
 
 	private getArchivedLogPath(index: number): string {
 		return path.join(this.directory, `${this.fileName}.${index}`);
+	}
+
+	private normalizeMaxFileSizeBytes(value: number): number {
+		if (!Number.isFinite(value)) {
+			return AppLogger.MAX_LOG_FILE_SIZE_BYTES;
+		}
+
+		return Math.min(Math.max(Math.floor(value), 32_768), AppLogger.MAX_LOG_FILE_SIZE_BYTES);
 	}
 
 	private normalizeMeta(meta: unknown): Record<string, unknown> | null {

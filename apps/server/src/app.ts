@@ -6,6 +6,7 @@ import {
 	NotificationChannelStore,
 	NotificationDeliveryStore,
 	NotificationRoutingStore,
+	AppSettingStore,
 	UserPreferenceStore,
 	WatchRuleStore,
 	createMysqlPool
@@ -34,7 +35,14 @@ export function createApp(config: AppConfig, logger: AppLogger) {
 	const watchRuleStore = new WatchRuleStore(mysqlPool);
 	const notificationChannelStore = new NotificationChannelStore(mysqlPool);
 	const userPreferenceStore = new UserPreferenceStore(mysqlPool);
-	const accountService = new AccountService(watchRuleStore, notificationChannelStore, userPreferenceStore);
+	const appSettingStore = new AppSettingStore(mysqlPool);
+	const accountService = new AccountService(
+		watchRuleStore,
+		notificationChannelStore,
+		userPreferenceStore,
+		appSettingStore,
+		logger
+	);
 	const ignoredControllerStore = new IgnoredControllerStore(mysqlPool);
 	const notificationRoutingStore = new NotificationRoutingStore(mysqlPool);
 	const controllerEventStore = new ControllerEventStore(mysqlPool);
@@ -94,6 +102,10 @@ export function createApp(config: AppConfig, logger: AppLogger) {
 	app.use("/api/v1/logs", createLogsRouter(authService, logger));
 	app.use("/api/v1/monitoring", createMonitoringRouter(monitoringService));
 	app.use("/api/v1/topdown", createTopdownRouter(topdownResolver));
+
+	void appSettingStore.getSettings().then((settings) => {
+		logger.setMaxFileSizeBytes(settings.logMaxFileSizeBytes);
+	});
 
 	monitoringService.start();
 

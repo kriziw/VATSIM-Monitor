@@ -59,6 +59,16 @@ export function createAccountRouter(
 		res.json(data.preferences);
 	});
 
+	router.get("/app-settings", async (req, res) => {
+		const authenticatedSession = await requireSession(req, res, authService);
+		if (!authenticatedSession) {
+			return;
+		}
+
+		const data = await accountService.getDashboardData(authenticatedSession.user.id);
+		res.json(data.appSettings);
+	});
+
 	router.get("/monitor", async (req, res) => {
 		const authenticatedSession = await requireSession(req, res, authService);
 		if (!authenticatedSession) {
@@ -237,6 +247,28 @@ export function createAccountRouter(
 			}
 
 			res.status(500).json({ message: "Unexpected preference update failure." });
+		}
+	});
+
+	router.patch("/app-settings", async (req, res) => {
+		const authenticatedSession = await requireSession(req, res, authService);
+		if (!authenticatedSession) {
+			return;
+		}
+
+		try {
+			const appSettings = await accountService.updateAppSettings({
+				logMaxFileSizeBytes:
+					typeof req.body?.logMaxFileSizeBytes === "number" ? req.body.logMaxFileSizeBytes : undefined
+			});
+			res.json(appSettings);
+		} catch (error) {
+			if (error instanceof AccountError) {
+				res.status(error.status).json({ message: error.message });
+				return;
+			}
+
+			res.status(500).json({ message: "Unexpected application settings update failure." });
 		}
 	});
 

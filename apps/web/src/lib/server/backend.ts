@@ -1,6 +1,7 @@
 import { env } from "$env/dynamic/private";
 import { error } from "@sveltejs/kit";
 import type {
+	AppSettings,
 	AuthenticatedSession,
 	ControllerEvent,
 	DiscordNotificationChannelConfig,
@@ -21,6 +22,7 @@ export interface DashboardResponse {
 	watchRules: WatchRule[];
 	notificationChannels: NotificationChannel[];
 	preferences: UserPreferences;
+	appSettings: AppSettings;
 }
 
 export interface DeleteWatchRuleResponse {
@@ -126,6 +128,10 @@ export async function fetchDashboardData(sessionId: string): Promise<DashboardRe
 
 export async function fetchUserPreferences(sessionId: string): Promise<UserPreferences> {
 	return requestWithSession(sessionId, "/api/v1/preferences") as Promise<UserPreferences>;
+}
+
+export async function fetchAppSettings(sessionId: string): Promise<AppSettings> {
+	return requestWithSession(sessionId, "/api/v1/app-settings") as Promise<AppSettings>;
 }
 
 export async function fetchMonitorSnapshot(sessionId: string): Promise<MonitorSnapshot> {
@@ -238,6 +244,19 @@ export async function updateUserPreferences(
 		method: "PATCH",
 		body: {
 			logsEnabled: typeof body.logsEnabled === "boolean" ? body.logsEnabled : null
+		}
+	});
+}
+
+export async function updateAppSettings(
+	sessionId: string,
+	body: { logMaxFileSizeBytes?: number }
+) {
+	return requestWithSession(sessionId, "/api/v1/app-settings", {
+		method: "PATCH",
+		body: {
+			logMaxFileSizeBytes:
+				typeof body.logMaxFileSizeBytes === "number" ? body.logMaxFileSizeBytes : null
 		}
 	});
 }
