@@ -8,6 +8,7 @@ import type {
 	MonitorSnapshot,
 	MonitorStatus,
 	NotificationChannel,
+	UserPreferences,
 	WatchRule
 } from "@vatsim-monitor/domain";
 
@@ -19,10 +20,19 @@ export interface AuthResponse {
 export interface DashboardResponse {
 	watchRules: WatchRule[];
 	notificationChannels: NotificationChannel[];
+	preferences: UserPreferences;
 }
 
 export interface DeleteWatchRuleResponse {
 	detachedAlertCount: number;
+}
+
+export interface AppLogEntry {
+	timestamp: string;
+	level: "debug" | "error" | "info" | "warn";
+	source: string;
+	message: string;
+	meta: Record<string, unknown> | null;
 }
 
 function getApiBaseUrl(): string {
@@ -114,12 +124,20 @@ export async function fetchDashboardData(sessionId: string): Promise<DashboardRe
 	return requestWithSession(sessionId, "/api/v1/dashboard") as Promise<DashboardResponse>;
 }
 
+export async function fetchUserPreferences(sessionId: string): Promise<UserPreferences> {
+	return requestWithSession(sessionId, "/api/v1/preferences") as Promise<UserPreferences>;
+}
+
 export async function fetchMonitorSnapshot(sessionId: string): Promise<MonitorSnapshot> {
 	return requestWithSession(sessionId, "/api/v1/monitor") as Promise<MonitorSnapshot>;
 }
 
 export async function fetchWatchlistEvents(sessionId: string, limit = 12): Promise<ControllerEvent[]> {
 	return requestWithSession(sessionId, `/api/v1/monitor/events?limit=${limit}`) as Promise<ControllerEvent[]>;
+}
+
+export async function fetchLogs(sessionId: string, limit = 200): Promise<AppLogEntry[]> {
+	return requestWithSession(sessionId, `/api/v1/logs?limit=${limit}`) as Promise<AppLogEntry[]>;
 }
 
 export async function fetchMonitoringStatus(): Promise<MonitorStatus> {
@@ -209,6 +227,18 @@ export async function updateNotificationChannel(
 export async function deleteNotificationChannel(sessionId: string, id: string) {
 	return requestWithSession(sessionId, `/api/v1/notification-channels/${id}`, {
 		method: "DELETE"
+	});
+}
+
+export async function updateUserPreferences(
+	sessionId: string,
+	body: { logsEnabled?: boolean }
+) {
+	return requestWithSession(sessionId, "/api/v1/preferences", {
+		method: "PATCH",
+		body: {
+			logsEnabled: typeof body.logsEnabled === "boolean" ? body.logsEnabled : null
+		}
 	});
 }
 

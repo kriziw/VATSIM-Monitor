@@ -1,0 +1,141 @@
+<script lang="ts">
+	import { browser } from "$app/environment";
+	import { invalidate } from "$app/navigation";
+	import { onDestroy } from "svelte";
+	import type { AppLogEntry } from "$lib/server/backend";
+
+	export let data;
+
+	let refreshTimer: ReturnType<typeof setInterval> | null = null;
+	let autoRefreshEnabled = false;
+	let selectedLevel = "all";
+	const levelLabels: Record<string, string> = {
+		all: "All levels",
+		debug: "Debug",
+		info: "Info",
+		warn: "Warning",
+		error: "Error"
+	};
+	const levelOrder: Record<AppLogEntry["level"], number> = {
+		debug: 10,
+		info: 20,
+		warn: 30,
+		error: 40
+	};
+
+	function clearRefreshTimer() {
+		if (refreshTimer) {
+			clearInterval(refreshTimer);
+			refreshTimer = null;
+		}
+	}
+
+	function refreshLogs() {
+		void invalidate("app:logs");
+	}
+
+	function matchesSelectedLevel(entry: AppLogEntry): boolean {
+		if (selectedLevel === "all") {
+			return true;
+		}
+
+		return levelOrder[entry.level] >= levelOrder[selectedLevel as AppLogEntry["level"]];
+	}
+
+	$: if (browser && autoRefreshEnabled && !refreshTimer) {
+		refreshTimer = setInterval(refreshLogs, 10000);
+	}
+
+	$: if (!autoRefreshEnabled) {
+		clearRefreshTimer();
+	}
+
+	$: filteredLogs = data.logs.filter(matchesSelectedLevel);
+
+	onDestroy(() => {
+		clearRefreshTimer();
+	});
+</script>
+
+<svelte:head>
+	<title>Logs | VATSIM Monitor</title>
+</svelte:head>
+
+<section class="dashboard-hero dashboard-hero--single">
+	<div class="panel dashboard-hero__main dashboard-hero__main--compact">
+		<div class="alerts-hero__topline">
+			<div class="eyebrow">Logs</div>
+			<div class="button-row logs-toolbar">
+				<label class="logs-filter">
+					<span>Log level</span>
+					<select bind:value={selectedLevel}>
+						<option value="all">All levels</option>
+						<option value="debug">Debug and above</option>
+						<option value="info">Info and above</option>
+						<option value="warn">Warning and above</option>
+						<option value="error">Error only</option>
+					</select>
+				</label>
+				<label class="toggle-chip">
+					<input bind:checked={autoRefreshEnabled} type="checkbox" />
+					<span>Auto-refresh</span>
+				</label>
+				<button class="button button--secondary" on:click={refreshLogs} type="button">Refresh now</button>
+			</div>
+		</div>
+		<h1>Review recent application activity without leaving the app.</h1>
+		<div class="monitor-strip monitor-strip--compact">
+			<div class="monitor-strip__item">
+				<span>Visible</span>
+				<strong>{filteredLogs.length}</strong>
+			</div>
+			<div class="monitor-strip__item">
+				<span>Level</span>
+				<strong>{levelLabels[selectedLevel]}</strong>
+			</div>
+			<div class="monitor-strip__item">
+				<span>Refresh</span>
+				<strong>{autoRefreshEnabled ? "10s" : "Paused"}</strong>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="section dashboard-stack">
+	<article class="dashboard-card dashboard-card--wide">
+		<div class="section-heading">
+			<h2>Recent logs</h2>
+			<span class="status-chip status-chip--muted">Rotating files</span>
+		</div>
+
+		{#if data.logs.length === 0}
+			<p class="empty-state">No application logs are available yet.</p>
+		{:else if filteredLogs.length === 0}
+			<p class="empty-state">No log entries match the current level filter.</p>
+		{:else}
+			<div class="log-list">
+				{#each filteredLogs as entry}
+					<div class="log-row">
+						<div class="log-row__summary">
+							<div class="log-row__meta">
+								<span class="status-chip {entry.level === 'error'
+									? 'status-chip--warn'
+									: entry.level === 'warn'
+										? 'status-chip--muted'
+										: entry.level === 'debug'
+											? 'status-chip--muted'
+											: 'status-chip--ok'}">{entry.level === "warn" ? "warning" : entry.level}</span>
+								<strong>{entry.source}</strong>
+								<span>{entry.timestamp}</span>
+							</div>
+							<p>{entry.message}</p>
+						</div>
+						{#if entry.meta}
+							<pre class="log-row__details">{JSON.stringify(entry.meta, null, 2)}</pre>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{/if}
+	</article>
+</section>

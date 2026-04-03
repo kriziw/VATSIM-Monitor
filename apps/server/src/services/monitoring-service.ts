@@ -21,6 +21,7 @@ import type {
 	VatsimControllerRecord,
 	VatsimDataClient
 } from "@vatsim-monitor/integrations";
+import type { AppLogger } from "../lib/logger.js";
 
 function escapeRegex(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -40,6 +41,18 @@ interface PendingOfflineController {
 	occurredAtMs: number;
 }
 
+type PendingOfflineResolution =
+	| {
+			type: "controller_change";
+			previousController: VatsimControllerRecord;
+	  }
+	| {
+			type: "same_controller_recovered";
+	  }
+	| {
+			type: "none";
+	  };
+
 export interface MonitoringServiceOptions {
 	pollIntervalMs: number;
 	vatsimClient: VatsimDataClient;
@@ -50,6 +63,7 @@ export interface MonitoringServiceOptions {
 	controllerEventStore: ControllerEventStore;
 	notificationDeliveryStore: NotificationDeliveryStore;
 	topdownProviderState?: "active" | "pending" | "stopped";
+	logger: AppLogger;
 }
 
 export class MonitoringService {
@@ -62,6 +76,7 @@ export class MonitoringService {
 	private readonly controllerEventStore: ControllerEventStore;
 	private readonly notificationDeliveryStore: NotificationDeliveryStore;
 	private readonly topdownProviderState: "active" | "pending" | "stopped";
+	private readonly logger: AppLogger;
 	private readonly controllerChangeWindowMs: number;
 	private timer: ReturnType<typeof setInterval> | null = null;
 	private pollInFlight = false;
@@ -83,6 +98,7 @@ export class MonitoringService {
 		this.controllerEventStore = options.controllerEventStore;
 		this.notificationDeliveryStore = options.notificationDeliveryStore;
 		this.topdownProviderState = options.topdownProviderState ?? "pending";
+		this.logger = options.logger;
 		this.controllerChangeWindowMs = Math.max(this.pollIntervalMs * 2, 30_000);
 	}
 
@@ -92,6 +108,9 @@ export class MonitoringService {
 		}
 
 		this.state = "running";
+		this.logger.info("monitor", "Monitoring loop started.", {
+			pollIntervalMs: this.pollIntervalMs
+		});
 		void this.pollOnce();
 		this.timer = setInterval(() => {
 			void this.pollOnce();
@@ -105,6 +124,7 @@ export class MonitoringService {
 		}
 
 		this.state = "stopped";
+		this.logger.info("monitor", "Monitoring loop stopped.");
 	}
 
 	public getStatus(): MonitorStatus {
@@ -267,6 +287,9 @@ export class MonitoringService {
 			const nextControllers = new Map<number, VatsimControllerRecord>(
 				controllers.map((controller: VatsimControllerRecord) => [controller.cid, controller])
 			);
+			this.logger.debug("monitor", "Fetched VATSIM controller snapshot.", {
+				controllerCount: nextControllers.size
+			});
 
 			if (this.currentControllers.size === 0) {
 				this.currentControllers = nextControllers;
@@ -310,15 +333,35 @@ export class MonitoringService {
 			}
 
 			for (const controller of newControllers) {
-				const previousController = this.takePendingOfflineController(controller, occurredAt);
-				const type = previousController ? "controller_change" : "controller_online";
+				const pendingOfflineResolution = this.takePendingOfflineController(controller, occurredAt);
+				if (pendingOfflineResolution.type === "same_controller_recovered") {
+					this.logger.debug("monitor", "Suppressed duplicate online event after brief feed gap.", {
+						callsign: controller.callsign,
+						controllerCid: controller.cid
+					});
+					continue;
+				}
+
+				const type =
+					pendingOfflineResolution.type === "controller_change"
+						? "controller_change"
+						: "controller_online";
 				if (type === "controller_change") {
 					cycleStats.changedEvents += 1;
 				} else {
 					cycleStats.newEvents += 1;
 				}
 
-				const outcome = await this.handleControllerEvent(type, controller, occurredAt, routedTargets, ignoredControllerIds, previousController);
+				const outcome = await this.handleControllerEvent(
+					type,
+					controller,
+					occurredAt,
+					routedTargets,
+					ignoredControllerIds,
+					pendingOfflineResolution.type === "controller_change"
+						? pendingOfflineResolution.previousController
+						: undefined
+				);
 				cycleStats.sentNotifications += outcome.sentNotifications;
 				cycleStats.skippedNotifications += outcome.skippedNotifications;
 			}
@@ -340,8 +383,18 @@ export class MonitoringService {
 			this.lastSuccessAt = occurredAt.toISOString();
 			this.lastError = null;
 			this.lastCycle = cycleStats;
+			if (
+				cycleStats.newEvents > 0 ||
+				cycleStats.changedEvents > 0 ||
+				cycleStats.offlineEvents > 0 ||
+				cycleStats.sentNotifications > 0 ||
+				cycleStats.skippedNotifications > 0
+			) {
+				this.logger.info("monitor", "Monitoring cycle processed controller activity.", cycleStats);
+			}
 		} catch (error: any) {
 			this.lastError = error?.message || "Unexpected monitoring failure.";
+			this.logger.error("monitor", "Monitoring cycle failed.", error);
 		} finally {
 			this.pollInFlight = false;
 		}
@@ -443,6 +496,13 @@ export class MonitoringService {
 					delivery.id,
 					error?.message || "Discord delivery failed."
 				);
+				this.logger.warn("alerts", "Discord delivery failed.", {
+					channelId: target.channelId,
+					controllerCid: controller.cid,
+					callsign: controller.callsign,
+					eventType: type,
+					message: error?.message || "Discord delivery failed."
+				});
 				skippedNotifications += 1;
 			}
 		}
@@ -514,26 +574,35 @@ export class MonitoringService {
 	private takePendingOfflineController(
 		controller: VatsimControllerRecord,
 		occurredAt: Date
-	): VatsimControllerRecord | undefined {
+	): PendingOfflineResolution {
 		const key = controller.callsign.toUpperCase();
 		const pending = this.pendingOfflineControllers.get(key);
 		if (!pending) {
-			return undefined;
+			return {
+				type: "none"
+			};
 		}
 
 		if (
 			pending.controller.cid === controller.cid
 		) {
 			this.pendingOfflineControllers.delete(key);
-			return undefined;
+			return {
+				type: "same_controller_recovered"
+			};
 		}
 
 		if (occurredAt.getTime() - pending.occurredAtMs > this.controllerChangeWindowMs) {
-			return undefined;
+			return {
+				type: "none"
+			};
 		}
 
 		this.pendingOfflineControllers.delete(key);
-		return pending.controller;
+		return {
+			type: "controller_change",
+			previousController: pending.controller
+		};
 	}
 
 	private collectExpiredOfflineControllers(occurredAt: Date): VatsimControllerRecord[] {

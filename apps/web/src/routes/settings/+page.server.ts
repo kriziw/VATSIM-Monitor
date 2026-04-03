@@ -2,6 +2,7 @@ import {
 	createWatchRule,
 	deleteWatchRule,
 	fetchDashboardData,
+	updateUserPreferences,
 	updateWatchRule
 } from "$lib/server/backend";
 import { fail, redirect, type Cookies } from "@sveltejs/kit";
@@ -21,7 +22,8 @@ export const load = (async ({ locals }) => {
 	return {
 		session: locals.session,
 		watchRules: dashboardData.watchRules,
-		notificationChannels: dashboardData.notificationChannels
+		notificationChannels: dashboardData.notificationChannels,
+		preferences: dashboardData.preferences
 	};
 }) satisfies PageServerLoad;
 
@@ -91,6 +93,31 @@ export const actions = {
 			return fail(error?.status || 500, {
 				section: "watchRules",
 				message: error?.body?.message ?? error?.message ?? "Unable to delete watch rule."
+			});
+		}
+	},
+	updatePreferences: async ({ request, cookies }) => {
+		const sessionId = getSessionId(cookies);
+		if (!sessionId) {
+			throw redirect(302, "/login");
+		}
+
+		const form = await request.formData();
+		const logsEnabled = form.get("logsEnabled") === "true";
+
+		try {
+			await updateUserPreferences(sessionId, { logsEnabled });
+			return {
+				success: true,
+				section: "preferences",
+				message: logsEnabled
+					? "Logs page enabled for this account."
+					: "Logs page disabled for this account."
+			};
+		} catch (error: any) {
+			return fail(error?.status || 500, {
+				section: "preferences",
+				message: error?.body?.message ?? error?.message ?? "Unable to update preferences."
 			});
 		}
 	}

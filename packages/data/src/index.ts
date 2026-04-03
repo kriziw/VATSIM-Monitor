@@ -6,6 +6,7 @@ import { IgnoredControllerStore } from "./ignored-controller-store.js";
 import { NotificationRoutingStore } from "./notification-routing-store.js";
 import { ControllerEventStore } from "./controller-event-store.js";
 import { NotificationDeliveryStore } from "./notification-delivery-store.js";
+import { UserPreferenceStore } from "./user-preference-store.js";
 
 export interface MysqlConfig {
 	host: string;
@@ -34,7 +35,8 @@ export {
 	IgnoredControllerStore,
 	NotificationRoutingStore,
 	ControllerEventStore,
-	NotificationDeliveryStore
+	NotificationDeliveryStore,
+	UserPreferenceStore
 };
 export type { CreateWatchRuleInput, UpdateWatchRuleInput } from "./watch-rule-store.js";
 export type {

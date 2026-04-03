@@ -1,4 +1,5 @@
 import { env } from "$env/dynamic/private";
+import { fetchUserPreferences } from "$lib/server/backend";
 import { readFileSync } from "node:fs";
 import type { LayoutServerLoad } from "./$types";
 
@@ -13,8 +14,16 @@ function readPackageVersion(): string {
 }
 
 export const load = (async ({ locals }) => {
+	const preferences = locals.session
+		? await fetchUserPreferences(locals.session.session.id).catch(() => ({
+				userId: locals.session!.user.id,
+				logsEnabled: false
+			}))
+		: null;
+
 	return {
 		session: locals.session,
+		preferences,
 		buildInfo: {
 			version: env.APP_VERSION || readPackageVersion(),
 			buildNumber: env.BUILD_NUMBER || env.GITHUB_RUN_NUMBER || "local"

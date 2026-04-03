@@ -75,6 +75,14 @@ Most important values:
   Internal URL the web container uses to reach the backend. Leave this as `http://server:8080` for normal compose installs.
 - `MONITOR_POLL_INTERVAL_MS`
   VATSIM polling interval. Default: `15000`
+- `LOG_DIR`
+  Directory used by the backend for rotating application logs. The default compose setup persists this through the `server_logs` volume.
+- `LOG_LEVEL`
+  Minimum backend log level to write. Use `debug`, `info`, `warn`, or `error`. Default: `info`
+- `LOG_MAX_FILE_SIZE_BYTES`
+  Maximum size of each server log file before rotation. Default: `1048576`
+- `LOG_MAX_FILES`
+  Number of archived log files to retain. Default: `5`
 - `VATSIM_OAUTH_ENABLED`
   Keep this `false` unless optional VATSIM OAuth is configured later
 - `RUN_MIGRATIONS`
@@ -112,9 +120,13 @@ docker compose up -d
 - `mariadb`
   Persists application data.
 - `server`
-  Runs migrations on startup by default, then starts the backend API and monitoring loop.
+  Runs migrations on startup by default, then starts the backend API and monitoring loop. It also keeps rotating application logs in the `server_logs` volume.
 - `web`
   Serves the SvelteKit frontend and talks to the backend through `PRIVATE_API_BASE_URL`.
+
+## In-App Logs
+
+The backend keeps rotating log files on disk, but the `/logs` page is hidden by default in the web app. A signed-in user can enable it from `Settings` when they want troubleshooting access, and the page itself starts with auto-refresh paused so the log view does not jump around by default.
 
 ## Building From Source
 
