@@ -37,15 +37,15 @@
 </svelte:head>
 
 <section class="dashboard-hero dashboard-hero--single">
-	<div class="panel dashboard-hero__main">
+	<div class="panel dashboard-hero__main dashboard-hero__main--compact">
 		<div class="eyebrow">Monitor</div>
-		<h1>See what ATC is online and what changed recently.</h1>
-		<p>Use the monitor page for live network status, current controller activity, and the latest staffing changes that matter to your watchlist.</p>
+		<h1>Track live ATC and the watchlist changes that matter.</h1>
+		<p class="compact-lead">Keep this page open for a live view of matching controllers, polling health, and recent staffing changes.</p>
 
 		{#if data.statusError}
 			<div class="form-error">{data.statusError}</div>
 		{:else if data.monitoringStatus}
-			<div class="monitor-strip">
+			<div class="monitor-strip monitor-strip--tight">
 				<div class="monitor-strip__item">
 					<span>Online</span>
 					<strong>{data.monitoringStatus.currentOnlineCount}</strong>
@@ -67,7 +67,7 @@
 	</div>
 </section>
 
-<section class="section dashboard-stack">
+<section class="section dashboard-stack monitor-page">
 	<article class="dashboard-card dashboard-card--wide" id="watched-controllers">
 		<div class="section-heading">
 			<h2>Watched controllers online</h2>
