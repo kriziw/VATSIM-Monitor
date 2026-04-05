@@ -51,6 +51,8 @@ Most important values:
   Published image tag to pull. Default: `latest`
 - `MARIADB_VERSION`
   MariaDB image tag used by compose. Default: `11.8`
+- `TZ`
+  Optional container timezone. Default: `UTC`. Example: `Europe/Budapest`
 - `MYSQL_ROOT_PASSWORD`
   MariaDB root password
 - `MYSQL_DATABASE`
@@ -89,6 +91,8 @@ Most important values:
   Keep this `false` unless optional VATSIM OAuth is configured later
 - `RUN_MIGRATIONS`
   Runs database migrations when the server container starts. Default: `true`
+
+The application stores log timestamps in UTC for consistency, while the in-app Logs page renders them in the viewer's local browser time.
 
 Recommended first edit:
 
