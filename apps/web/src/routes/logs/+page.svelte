@@ -27,6 +27,17 @@
 		warn: 30,
 		error: 40
 	};
+	const timestampFormatter = browser
+		? new Intl.DateTimeFormat(undefined, {
+				year: "numeric",
+				month: "2-digit",
+				day: "2-digit",
+				hour: "2-digit",
+				minute: "2-digit",
+				second: "2-digit",
+				timeZoneName: "short"
+			})
+		: null;
 
 	function buildExportUrl() {
 		const params = new URLSearchParams();
@@ -64,6 +75,19 @@
 		}
 
 		return levelOrder[entry.level] >= levelOrder[selectedLevel as AppLogEntry["level"]];
+	}
+
+	function formatTimestamp(timestamp: string): string {
+		if (!timestampFormatter) {
+			return timestamp;
+		}
+
+		const parsed = new Date(timestamp);
+		if (Number.isNaN(parsed.getTime())) {
+			return timestamp;
+		}
+
+		return timestampFormatter.format(parsed);
 	}
 
 	function openLiveStream() {
@@ -149,6 +173,7 @@
 				{liveUpdatesEnabled ? "Streaming" : "Static"}
 			</span>
 		</div>
+		<p class="compact-lead">Stored in UTC, shown here in your local browser time.</p>
 		<div class="logs-export-grid logs-export-grid--compact">
 			<label class="logs-filter">
 				<span>Export</span>
@@ -190,7 +215,7 @@
 				{#each filteredLogs as entry}
 					<div class="log-console__row">
 						<div class="log-console__line">
-							<span class="log-console__timestamp">{entry.timestamp}</span>
+							<span class="log-console__timestamp">{formatTimestamp(entry.timestamp)}</span>
 							<span
 								class="log-console__level {entry.level === 'error'
 									? 'log-console__level--error'

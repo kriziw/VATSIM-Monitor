@@ -3,6 +3,7 @@ services:
     image: mariadb:${MARIADB_VERSION:-11.8}
     restart: unless-stopped
     environment:
+      TZ: ${TZ:-UTC}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-vatsim_monitor}
       MYSQL_USER: ${MYSQL_USER:-vatsim_monitor}
@@ -24,6 +25,7 @@ services:
       mariadb:
         condition: service_healthy
     environment:
+      TZ: ${TZ:-UTC}
       HOST: 0.0.0.0
       PORT: 8080
       TRUST_PROXY: ${TRUST_PROXY:-false}
@@ -50,6 +52,7 @@ services:
     depends_on:
       - server
     environment:
+      TZ: ${TZ:-UTC}
       ORIGIN: ${ORIGIN:-http://localhost:3000}
       PROTOCOL_HEADER: ${PROTOCOL_HEADER:-}
       HOST_HEADER: ${HOST_HEADER:-}
