@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/kriziw/VATSIM-Monitor/compare/v0.14.0...v0.14.1) (2026-04-05)
+
+
+### Bug Fixes
+
+* show logs in local time ([#95](https://github.com/kriziw/VATSIM-Monitor/issues/95)) ([c945801](https://github.com/kriziw/VATSIM-Monitor/commit/c9458011eb813a95d64b793f0654027ca3caa57d))
+
 ## [0.14.0](https://github.com/kriziw/VATSIM-Monitor/compare/v0.13.3...v0.14.0) (2026-04-03)
 
 
