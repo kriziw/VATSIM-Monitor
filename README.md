@@ -134,8 +134,14 @@ The default `docker-compose.yml` now targets the published Docker Hub images so 
 3. Optionally change `SERVER_PORT`, `WEB_PORT`, or `APP_VERSION`.
 4. Optionally pin `MARIADB_VERSION` if you need a different compatible MariaDB image tag.
 5. Optionally set `TZ` if you want the containers to run with a specific timezone such as `Europe/Budapest`.
-6. Run `docker compose pull`.
-7. Run `docker compose up -d`.
+6. If users access the web app through a domain or reverse proxy, set `ORIGIN`, `PROTOCOL_HEADER`, `HOST_HEADER`, and `PORT_HEADER` as shown below.
+7. Run `docker compose pull`.
+8. Run `docker compose up -d`.
+
+The default Compose stack uses Docker named volumes for persistent storage:
+
+- `mariadb_data` for MariaDB data
+- `server_logs` for rotating backend logs
 
 The server now keeps built-in rotating log files and can expose recent entries inside the signed-in web UI on `/logs` when that troubleshooting page is enabled from Settings for an account.
 The in-app Logs page stores entries in UTC and renders them in the viewer's local browser time.
