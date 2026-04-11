@@ -6,6 +6,8 @@ Unified monitoring platform for VATSIM controllers.
 
 VATSIM Monitor is a self-hosted platform for tracking controller availability on the VATSIM network. It is designed for users who want to watch specific positions, receive alerts when staffing changes happen, and manage those alerts through a clean local-first web application.
 
+Public documentation is available at [kriziw.github.io/vatsim-monitor](https://kriziw.github.io/vatsim-monitor/).
+
 The project combines:
 
 - live polling of VATSIM controller data
