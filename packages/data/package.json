@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@vatsim-monitor/domain": "file:../domain",
-    "mysql2": "^3.14.0"
+    "mysql2": "^3.24.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.2",
